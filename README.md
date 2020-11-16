@@ -37,6 +37,8 @@ package_name
 
 ## Resources
 For more information consult:
+
+* [LibreOffice Python Guide - Introduction](https://wiki.documentfoundation.org/Macros/Python_Guide/Introduction)
 * [Python 3 latest version documentation](https://docs.python.org/3/)
 * [Mastering Markdown](https://guides.github.com/features/mastering-markdown/)
 * [Restructured Text (reST) and Sphinx CheatSheet](https://thomas-cokelaer.info/tutorials/sphinx/rest_syntax.html)
