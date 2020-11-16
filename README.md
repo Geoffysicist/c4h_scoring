@@ -1,4 +1,6 @@
-# Prof Stick's Mostly Good Python Project Template
+# Courses4Horses
+
+Stay tuned
 
 A template which provides the structure for Python 3 projects enabling:
 * creation of modules
