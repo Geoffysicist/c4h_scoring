@@ -39,6 +39,9 @@ package_name
 For more information consult:
 
 * [LibreOffice Python Guide - Introduction](https://wiki.documentfoundation.org/Macros/Python_Guide/Introduction)
+* [Create a dynamic dashboard using Plotly, Dash and Python (absolute beginner guide](https://medium.com/@ooly/create-a-dynamic-dashboard-using-plotly-dash-and-python-absolute-beginner-guide-aa379a259cd2)
+* [Creating PDF Files with Python](https://towardsdatascience.com/creating-pdf-files-with-python-ad3ccadfae0f)
+* [How to create Latex tables directly from Python code](https://towardsdatascience.com/how-to-create-latex-tables-directly-from-python-code-5228c5cea09a)
 * [Python 3 latest version documentation](https://docs.python.org/3/)
 * [Mastering Markdown](https://guides.github.com/features/mastering-markdown/)
 * [Restructured Text (reST) and Sphinx CheatSheet](https://thomas-cokelaer.info/tutorials/sphinx/rest_syntax.html)
