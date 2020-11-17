@@ -28,7 +28,7 @@ class SampleClass(object):
         self._eggs = 0
 
     def public_method(self):
-        """"""Short description.
+        """Short description.
         
         Longer description of desired functionality
 
