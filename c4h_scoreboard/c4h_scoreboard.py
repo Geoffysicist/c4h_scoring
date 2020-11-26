@@ -12,18 +12,22 @@ examples.
   bar = foo.public_method(required_variable, optional_variable=42)
 """
 
+import json
+
 class C4HEvent(object):
     '''Equestrian Event.
 
     Attributes:
         _name (string): the event name
         _arenas (list): list of C4HArena objects
+        _classes (list): list of C4HJumpClass objects
         _details (string): other information about the event
     '''
 
     def __init__(self, event_name):
         self._name = event_name
         self._arenas = []
+        self._classes = []
         self._details = ''
 
     def get_name(self):
@@ -53,6 +57,28 @@ class C4HEvent(object):
         self._arenas.append(a)
         return a
 
+    def new_class(self, class_id):
+        '''creates a new class if it doesn't exist.
+
+        checks to see if a class with name class_id exists
+        if it exists a valueerror is raised
+        if not a new class is created and added to the class list then returned
+
+        Args:
+            class_id (string): the id of the class to check/create
+
+        Raises:
+            ValueError: if a class with that class_id already exists
+        '''
+
+        for c in self._classes:
+            if c.get_id() == class_id:
+                raise ValueError('Class with id {} already exists'.format(class_id))
+                
+        c = C4HJumpClass(class_id, self)
+        self._classes.append(c)
+        return c
+
 class C4HArena(object):
     '''An arena in the event which holds classes.
 
@@ -70,70 +96,112 @@ class C4HArena(object):
     def get_name(self):
         return self._name
 
-class C4HClass(object):
-    ''' Show jumping class
+    def add_class(self, jump_class):
+        if type(jump_class) == C4HJumpClass:
+            self._classes.append(jump_class)
+            jump_class.set_arena(self)
+        else:
+            raise TypeError('{} is type {} not type C4HJumpClass'.format(jump_class, type(jump_class)))
+            # raise TypeError(f'{jump_class} is type {type(jump_class)} not type C4HJumpClass')
+
+    def get_classes(self):
+        return self._classes
+
+class EAArticle(object):
+    '''EA/FEI article.
 
     Attributes:
-        _name (string): the class name
-        _arena (C4HArena):
+        _identifier (string): the paragraph.subparagraph number string
+        _description (string): word description of the competition
+        _old_name: the deprecated silly names that everyone still uses
     '''
 
-class SampleClass(object):
-    """Summary of class here.
+    def __init__(self, article_dict):
+        '''init the article with a dictionary of the id, description and old name.
+        '''
+        self._id = article_dict['id']
+        self._description = article_dict['description']
+        self._old_name = article_dict['old_name']
 
-    Longer class information after leaving a line...
+    def get_id(self):
+        return self._id
+
+    def get_description(self):
+        return self._description
+
+    def get_old_name(self):
+        return self._old_name
     
+
+class C4HJumpClass(object):
+    '''A show jumping class.
+
     Attributes:
-        likes_spam (type): indicates if we like SPAM or not.
-        eggs (type): count of the eggs we have eaten.
-    """
+        _id (string):
+        _name (string):
+        _arena (C4HArena):
+        _description (string):
+        _article (EAArticle):
+        _height (int): the height in cm
+        _times (list of ints): the times allowed for each phase
+        _judge (string): judges name
+        _cd (string): course designer name
+        _places (int): the number ofplaces awarded prizes
+        _combinations (list): list of the horse/rider combinations entered
+    '''
 
-    def __init__(self, likes_spam=False):
-        """Inits SampleClass with blah."""
-        self._likes_spam = likes_spam
-        self._eggs = 0
+    def __init__(self, class_id, places=6):
+        self._id = class_id
+        self._name = None
+        self._article = None
+        self._arena = None
+        self._description = None
+        self._height = None
+        self._times = []
+        self._judge = None
+        self._cd = None
+        self._places = places
+        self._combinations = []
 
-    def public_method(self):
-        """Short description.
-        
-        Longer description of desired functionality
-
-        Args:
-            required_variable (type): A required argument
-            optional_variable (type): An optional argument
-
-        Returns:
-            type: nothing but if it did you would describe it here
-
-        Raises:
-            NoError: but if it did you would describe it here
-        """
-        return None
-
-def function_name(required_variable, optional_variable=None):
-    """Short description.
-
-    Longer description of desired functionality
-
-    Args:
-        required_variable (type): A required argument
-        optional_variable (type): An optional argument
-
-    Returns:
-        type: nothing but if it did you would describe it here
-
-    Raises:
-        NoError: but if it did you would describe it here
-    """
-    return None
-
+    def get_id(self):
+        return self._id
     
+    def set_arena(self, arena):
+        if type(arena) == C4HArena:
+            self._arena = arena
+        else:
+            raise TypeError('{} is type {} not type C4HArena'.format(arena, type(arena)))
+            
+
+    def get_arena(self):
+        return self._arena
+
 if __name__ == "__main__":
+    ea_articles = []
+
+    #Read the EA articles json to a dictionary then objects
+    with open('c4h_scoreboard/ea_articles.json', 'r') as articles_json:
+        ea_art_dict = json.load(articles_json)
+
+    ea_art_dict = ea_art_dict['ea_articles']
+
+    for a in ea_art_dict:
+        ea_articles.append(EAArticle(a))
+
     this_event = C4HEvent('Baccabuggry World Cup')
     arena1 = this_event.new_arena('arena1')
+    class1 = this_event.new_class('class1')
+    class2 = this_event.new_class('class2')
+    class3 = this_event.new_class('class3')
+    class4 = this_event.new_class('class3')
+    arena1.add_class(class1)
+    arena1.add_class(class2)
     arena2 = this_event.new_arena('arena2')
-    arena3 = this_event.new_arena('arena1')
-
+    arena2.add_class(class3)
+    
     print(this_event.get_name())
+
     for a in this_event.get_arenas():
         print (a.get_name())
+        for c in a.get_classes():
+            print(c.get_id())
