@@ -84,16 +84,24 @@ def test_C4HJumpClass_set_arena(mock_event):
 def test_C4HEvent_new_rider(mock_event):
     surname = "Zarzhoff"
     given = 'Bluey'
-    new_rider = mock_event.new_rider(surname, given)
+    new_rider = mock_event.new_rider(surname=surname, given_name=given)
     assert type(new_rider) == c4h.C4HRider
     
     with pytest.raises(ValueError) as e:
-        mock_event.new_rider(surname, given)
+        mock_event.new_rider(surname=surname, given_name=given)
     assert str(e.value) == "Rider Zarzhoff Bluey already exists"
 
     given = 'Bernie'
-    new_rider = mock_event.new_rider(surname, given)
+    ea_number = 1234567
+    new_rider = mock_event.new_rider(surname=surname, given_name=given, ea_number=ea_number)
     assert type(new_rider) == c4h.C4HRider
+
+    #TODO add test for EA number length - 7 digits
+    given = 'Terry'
+    ea_number = 12345678
+    new_rider = mock_event.new_rider(surname=surname, given_name=given, ea_number=ea_number)
+    assert type(new_rider) == c4h.C4HRider
+
 
 def test_C4HEvent_new_horse(mock_event):
     name = "Heffalump"
@@ -104,4 +112,5 @@ def test_C4HEvent_new_horse(mock_event):
         mock_event.new_horse(name)
     assert str(e.value) == "Horse Heffalump already exists"
 
+    #TODO add test for EA number length - 8 digits
 

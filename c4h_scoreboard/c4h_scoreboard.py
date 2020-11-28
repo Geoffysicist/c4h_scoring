@@ -159,7 +159,7 @@ class C4HEvent(object):
     def new_rider(self, surname=None, given_name=None, ea_number=None):
         '''creates a new rider and appends it to the rider list.
 
-        It seems odd ti inotialise these attribures with None but I want
+        It seems odd to initialise these attribures with None but I want
         users to be able to enter some dataif they don't know all of it.
         They may know the given name but not the surname or vice versa
 
@@ -169,7 +169,7 @@ class C4HEvent(object):
             ea_number (int): length must be 7 digits
 
         Returns:
-            C4HRidr
+            C4HRider
         '''
         for r in self._riders:
             if ((r.get_surname() == surname) and (r.get_given_name() == given_name)):
@@ -178,6 +178,24 @@ class C4HEvent(object):
         r = C4HRider(surname=surname, given_name=given_name, ea_number=ea_number)
         self._riders.append(r)
         return r
+
+    def new_horse(self, name, ea_number=None):
+        '''creates a new rider and appends it to the rider list.
+
+        Args:
+            name (string): 
+            ea_number (int): length must be 8 digits
+
+        Returns:
+            C4HHorse
+        '''
+        for h in self._horses:
+            if h.get_name() == name:
+                raise ValueError(f"Horse {name} already exists")
+
+        h = C4HHorse(name, ea_number=ea_number)
+        self._horses.append(h)
+        return h
 
 
 class C4HArena(object):
@@ -302,7 +320,11 @@ class C4HHorse(object):
         self._name = name
         self._ea_number = ea_number
 
+    def get_name(self):
+        return self._name
 
+    def get_ea_number(self):
+        return self._ea_number
     
 
 
