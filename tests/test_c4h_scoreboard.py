@@ -81,14 +81,27 @@ def test_C4HJumpClass_set_arena(mock_event):
         class1.set_arena('Arena1')
     assert str(e.value) == "Arg Arena1 is an object of type <class 'str'> should be type C4HArena"
 
-def test_C4HEvent_new_entry(mock_event):
-    entry_id = 1
-    rider = "Bluey Zarzoff"
-    horse = "Heffalump"
-    
-    new_rider = mock_event.new_entry(entry_id, rider, horse)
-    assert type(new_rider) == c4h.C4HEntry
+def test_C4HEvent_new_rider(mock_event):
+    surname = "Zarzhoff"
+    given = 'Bluey'
+    new_rider = mock_event.new_rider(surname, given)
+    assert type(new_rider) == c4h.C4HRider
     
     with pytest.raises(ValueError) as e:
-        mock_event.new_entry(new_rider)
-    assert str(e.value) == "Class with id Class1 already exists"
+        mock_event.new_rider(surname, given)
+    assert str(e.value) == "Rider Zarzhoff Bluey already exists"
+
+    given = 'Bernie'
+    new_rider = mock_event.new_rider(surname, given)
+    assert type(new_rider) == c4h.C4HRider
+
+def test_C4HEvent_new_horse(mock_event):
+    name = "Heffalump"
+    new_horse = mock_event.new_horse(name)
+    assert type(new_horse) == c4h.C4HHorse
+    
+    with pytest.raises(ValueError) as e:
+        mock_event.new_horse(name)
+    assert str(e.value) == "Horse Heffalump already exists"
+
+

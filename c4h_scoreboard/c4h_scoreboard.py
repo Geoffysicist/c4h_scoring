@@ -44,8 +44,10 @@ class C4HEvent(object):
 
     Attributes:
         _name (string): the event name
-        _arenas (list): list of C4HArena objects
-        _classes (list): list of C4HJumpClass objects
+        _arenas (list): C4HArena objects
+        _classes (list): C4HJumpClass objects
+        _riders (list): C4HRider objects
+        _horses (list): C4HHorse objects
         _details (string): other information about the event
     '''
 
@@ -53,6 +55,8 @@ class C4HEvent(object):
         self._name = event_name
         self._arenas = []
         self._classes = []
+        self._riders = []
+        self._horses = []
         self._details = ''
 
     def get_name(self):
@@ -152,6 +156,30 @@ class C4HEvent(object):
         '''returns the list of classes in the event'''
         return self._classes
 
+    def new_rider(self, surname=None, given_name=None, ea_number=None):
+        '''creates a new rider and appends it to the rider list.
+
+        It seems odd ti inotialise these attribures with None but I want
+        users to be able to enter some dataif they don't know all of it.
+        They may know the given name but not the surname or vice versa
+
+        Args:
+            surname (string): 
+            given_name (string): 
+            ea_number (int): length must be 7 digits
+
+        Returns:
+            C4HRidr
+        '''
+        for r in self._riders:
+            if ((r.get_surname() == surname) and (r.get_given_name() == given_name)):
+                raise ValueError(f"Rider {surname} {given_name} already exists")
+
+        r = C4HRider(surname=surname, given_name=given_name, ea_number=ea_number)
+        self._riders.append(r)
+        return r
+
+
 class C4HArena(object):
     '''An arena in the event which holds classes.
 
@@ -227,6 +255,55 @@ class C4HJumpClass(object):
         else:
             raise TypeError(f"Arg {arena} is an object of type {type(arena)} should be type C4HArena")
 
+class C4HCombo(object):
+    '''Rider/horse combinations.
+
+    Attributes:
+        _id (int): unique id for combination
+        _rider (C4HRider):
+        _horse (C4HHorse)
+    '''
+
+    def __init__(self, id, rider=None, horse=None):
+        self._id = id
+        self._rider = rider
+        self._horse= horse
+
+class C4HRider(object):
+    '''Rider details.
+
+    Attributes:
+        _surname (string)
+        _given_name (string): This must n digits
+        _ea_number (int):
+    '''
+    def __init__(self, surname, given_name, ea_number):
+        self._surname = surname
+        self._given_name = given_name
+        self._ea_number = ea_number
+
+    def get_surname(self):
+        return self._surname
+
+    def get_given_name(self):
+        return self._given_name
+
+    def get_ea_number(self):
+        return self._ea_number
+
+class C4HHorse(object):
+    '''Horse details.
+
+    Attributes:
+        _name (string):
+        _ea_number (int): this must be n digits
+    '''
+    def __init__(self, name, ea_number):
+        self._name = name
+        self._ea_number = ea_number
+
+
+    
 
 
 if __name__ == "__main__":
