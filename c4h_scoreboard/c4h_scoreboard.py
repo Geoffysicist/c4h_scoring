@@ -166,7 +166,7 @@ class C4HEvent(object):
         Args:
             surname (string): 
             given_name (string): 
-            ea_number (int): length must be 7 digits
+            ea_number (string): length must be 7 digits
 
         Returns:
             C4HRider
@@ -196,7 +196,6 @@ class C4HEvent(object):
         h = C4HHorse(name, ea_number=ea_number)
         self._horses.append(h)
         return h
-
 
 class C4HArena(object):
     '''An arena in the event which holds classes.
@@ -236,7 +235,7 @@ class C4HJumpClass(object):
         _times (list of ints): the times allowed for each phase
         _judge (string): judges name
         _cd (string): course designer name
-        _places (int): the number ofplaces awarded prizes
+        _places (int): the number of places awarded prizes
         _combinations (list): list of the horse/rider combinations entered
     '''
 
@@ -273,6 +272,12 @@ class C4HJumpClass(object):
         else:
             raise TypeError(f"Arg {arena} is an object of type {type(arena)} should be type C4HArena")
 
+    def set_places(self, places):
+        self._places = places
+    
+    def get_places(self):
+        return self._places
+
 class C4HCombo(object):
     '''Rider/horse combinations.
 
@@ -298,7 +303,12 @@ class C4HRider(object):
     def __init__(self, surname, given_name, ea_number):
         self._surname = surname
         self._given_name = given_name
-        self._ea_number = ea_number
+
+        if ea_number:
+            if ea_number.isnumeric() and (len(ea_number) == 7):
+                self._ea_number = ea_number
+            else:
+                raise ValueError('Rider EA number should be a number 7 digits long')
 
     def get_surname(self):
         return self._surname
@@ -318,7 +328,13 @@ class C4HHorse(object):
     '''
     def __init__(self, name, ea_number):
         self._name = name
-        self._ea_number = ea_number
+
+        if ea_number:
+            if ea_number.isnumeric() and (len(ea_number) == 8):
+                self._ea_number = ea_number
+            else:
+                raise ValueError('Rider EA number should be a number 8 digits long')
+
 
     def get_name(self):
         return self._name
@@ -326,8 +342,6 @@ class C4HHorse(object):
     def get_ea_number(self):
         return self._ea_number
     
-
-
 if __name__ == "__main__":
     ea_articles = []
 
@@ -341,19 +355,3 @@ if __name__ == "__main__":
         ea_articles.append(EAArticle(a))
 
     #now the event stuff
-    this_event = C4HEvent('Baccabuggry World Cup')
-    arena1 = this_event.new_arena('arena1')
-    arena2 = this_event.new_arena('arena2')
-    class1 = this_event.new_class('class1')
-    class2 = this_event.new_class('class2')
-    class3 = this_event.new_class('class3', arena=arena2)
-    class4 = this_event.new_class('class4', arena=arena1)
-    class1.set_arena(arena1)
-    class2.set_arena(arena2)
-    
-    print(this_event.get_name())
-
-    for a in this_event.get_arenas():
-        print (a.get_id())
-        for c in a.get_classes():
-            print(c.get_id())

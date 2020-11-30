@@ -92,19 +92,19 @@ def test_C4HEvent_new_rider(mock_event):
     assert str(e.value) == "Rider Zarzhoff Bluey already exists"
 
     given = 'Bernie'
-    ea_number = 1234567
+    ea_number = '1234567'
     new_rider = mock_event.new_rider(surname=surname, given_name=given, ea_number=ea_number)
     assert type(new_rider) == c4h.C4HRider
 
-    #TODO add test for EA number length - 7 digits
     given = 'Terry'
-    ea_number = 12345678
-    new_rider = mock_event.new_rider(surname=surname, given_name=given, ea_number=ea_number)
-    assert type(new_rider) == c4h.C4HRider
-
+    ea_number = '12345678'
+    with pytest.raises(ValueError) as e:
+            new_rider = mock_event.new_rider(surname=surname, given_name=given, ea_number=ea_number)
+    assert str(e.value) == "Rider EA number should be a number 7 digits long"
 
 def test_C4HEvent_new_horse(mock_event):
     name = "Heffalump"
+    ea_number = '12345678'
     new_horse = mock_event.new_horse(name)
     assert type(new_horse) == c4h.C4HHorse
     
@@ -112,5 +112,17 @@ def test_C4HEvent_new_horse(mock_event):
         mock_event.new_horse(name)
     assert str(e.value) == "Horse Heffalump already exists"
 
+    name = 'Suitable Boy'
+    ea_number = '1234567'
+    with pytest.raises(ValueError) as e:
+            new_horse = mock_event.new_horse(name, ea_number=ea_number)
+    assert str(e.value) == "Rider EA number should be a number 8 digits long"
+
+
     #TODO add test for EA number length - 8 digits
 
+def test_C4HJumpClass_places(mock_event):
+    this_class = mock_event.get_classes()[0]
+    places = 6
+    this_class.set_places(places)
+    assert this_class.get_places() == places
