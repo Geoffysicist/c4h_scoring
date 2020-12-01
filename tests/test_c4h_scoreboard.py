@@ -1,5 +1,5 @@
 import pytest
-import c4h_scoreboard.c4h_scoreboard as c4h
+import C4HScore.c4h_scoreboard as c4h
 
 @pytest.fixture
 def mock_event():

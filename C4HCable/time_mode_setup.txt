@@ -1,0 +1,24 @@
+Change to Running Time Mode
+
+    Press Setup
+    Press Prev Choice until you see Exit Setup
+    Press Eyes On
+    Press Next Choice until you see Printer Type
+    Press Enter
+    Press Next Choice until you see ASCII Fixed Pt
+    Press Enter
+    Press Next Choice until you see 9600 Baud
+    Press Enter
+
+Change to Normal Mode
+
+    Press Setup
+    Press Prev Choice until you see Exit Setup
+    Press Eyes On
+    Press Next Choice until you see Printer Type
+    Press Enter
+    Press Next Choice until you see Standard Output
+    Press Next Choice until you see 1200 Baud
+    Press Enter
+
+Make sure you choose ASCII Fixed Pt and not ASCII Float Pt
