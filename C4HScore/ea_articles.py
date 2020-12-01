@@ -16,5 +16,9 @@ for a in articles:
     })
 
 #Write the object to file.
-with open('docs/ea_articles.json','w') as jsonFile:
-    json.dump(articles_json, jsonFile)
+fn = 'c4h_scoreboard/ea_articles.json'
+with open(fn,'w') as outFile:
+    json.dump(articles_json, outFile)
+
+
+

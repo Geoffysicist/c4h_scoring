@@ -1,6 +1,10 @@
-# Courses4Horses
+# Welcome to Courses4Horses
 
-Stay tuned
+Showjumping support services including:
+
+    Course Design
+    Judging (including electronic scoring with uploads to the web)
+
 
 A template which provides the structure for Python 3 projects enabling:
 * creation of modules
