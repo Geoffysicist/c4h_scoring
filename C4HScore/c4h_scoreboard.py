@@ -13,6 +13,8 @@ examples.
 """
 
 import json
+import csv
+# import pandas
 
 class EAArticle(object):
     '''EA/FEI article.
@@ -48,6 +50,7 @@ class C4HEvent(object):
         _classes (list): C4HJumpClass objects
         _riders (list): C4HRider objects
         _horses (list): C4HHorse objects
+        _combos (list): C4HCombos rider, horse, id
         _details (string): other information about the event
     '''
 
@@ -57,6 +60,7 @@ class C4HEvent(object):
         self._classes = []
         self._riders = []
         self._horses = []
+        self._combos = []
         self._details = ''
 
     def get_name(self):
@@ -179,8 +183,17 @@ class C4HEvent(object):
         self._riders.append(r)
         return r
 
+    def get_rider(self, surname, given_name):
+        '''returns the C4HRider matching surname and given_name else None if rider doesn't exist.
+        '''
+        for r in self._riders:
+            if (r.get_surname() == surname and r.get_given_name() == given_name):
+                return r
+
+        return None
+
     def new_horse(self, name, ea_number=None):
-        '''creates a new rider and appends it to the rider list.
+        '''creates a new horse and appends it to the _horses list.
 
         Args:
             name (string): 
@@ -196,6 +209,49 @@ class C4HEvent(object):
         h = C4HHorse(name, ea_number=ea_number)
         self._horses.append(h)
         return h
+
+    def get_horse(self, name):
+        '''returns the C4HHorse matching name else None if horse doesn't exist.
+        '''
+        for h in self._horses:
+            if (h.get_name() == name):
+                return h
+
+        return None
+
+
+    def new_combo(self, id, rider=None, horse=None):
+        '''creates a new rider and appends it to the _combos list.
+
+        Args:
+            id (str): unique id
+            rider (C4HRider):
+            horse(C4HHorse)
+
+        Returns:
+            C4HCombo
+        '''
+        for c in self._combos:
+            if c.get_id() == id:
+                raise ValueError(f"Combo ID {id} already exists")
+
+        c = C4HCombo(id, rider, horse)
+        self._combos.append(c)
+        return c
+
+    def get_combo(self, id):
+        '''returns the C4HCombo with id == id else None if it doesn't exist.
+        '''
+        for c in self._combos:
+            if c.get_id() == id: return c
+
+        return None
+
+    def get_combos(self):
+        '''Returns a list of C4HCombo
+        '''
+        return self._combos
+
 
 class C4HArena(object):
     '''An arena in the event which holds classes.
@@ -250,7 +306,7 @@ class C4HJumpClass(object):
         self._judge = None
         self._cd = None
         self._places = places
-        self._combinations = []
+        self._combos = []
 
     def get_id(self):
         return self._id
@@ -278,19 +334,43 @@ class C4HJumpClass(object):
     def get_places(self):
         return self._places
 
+    def get_combos(self):
+        '''Returns a list of C4HCombo
+        '''
+        return self._combos
+
+
+    def add_combo(self, combo):
+        '''Adds a C4HCombo to the class.
+        '''
+        for c in self._combos:
+            if c == combo:
+                raise ValueError(f"Combination {c.get_id()} already in class")
+        
+        self._combos.append(combo)
+
 class C4HCombo(object):
     '''Rider/horse combinations.
 
     Attributes:
         _id (int): unique id for combination
         _rider (C4HRider):
-        _horse (C4HHorse)
+        _horse (C4HHorse):
     '''
 
-    def __init__(self, id, rider=None, horse=None):
+    def __init__(self, id, rider, horse):
         self._id = id
         self._rider = rider
         self._horse= horse
+
+    def get_id(self):
+        return self._id
+
+    def get_rider(self):
+        return self._rider
+
+    def get_horse(self):
+        return self._horse
 
 class C4HRider(object):
     '''Rider details.
@@ -341,12 +421,61 @@ class C4HHorse(object):
 
     def get_ea_number(self):
         return self._ea_number
-    
+
+
+
+# functions
+def load_csv_nominate(fn, event_name='New Event'):
+    '''Loads event data from a nominate like csv file
+
+    Args:
+        fn (string): path and filename
+        event_name (string): the name of the event
+
+    Returns:
+        C4HEvent
+    '''
+
+    # event_data = pandas.read_csv(fn)
+    with open(fn, newline='') as in_file:
+        in_data = csv.DictReader(in_file)
+        event = C4HEvent(event_name)
+        for entry in in_data:
+            rider = entry['Rider'].split(' ')
+            given_name = rider[0]
+            surname = ' '.join(rider[1:])
+            horse = entry['Horse']
+            id = entry['ID']
+            jumpclass = entry['Class']
+            if not event.get_rider(surname, given_name):
+                rider = event.new_rider(surname=surname, given_name=given_name)
+            else:
+                rider = event.get_rider(surname, given_name)
+            if not event.get_horse(horse):
+                horse = event.new_horse(horse)
+            else:
+                horse = event.get_horse(horse)
+            
+            if not event.get_combo(id):
+                combo = event.new_combo(id, rider=rider, horse=horse)
+            else:
+                combo = event.get_combo(id)
+            
+            if not event.get_class(jumpclass):
+                jumpclass = event.new_class(jumpclass)
+            else:
+                jumpclass = event.get_class(jumpclass)
+
+            if not jumpclass.get_combo(combo):
+                jumpclass.add_combo(combo)
+
+    return event
+
 if __name__ == "__main__":
     ea_articles = []
 
     #Read the EA articles json to a dictionary then objects
-    with open('c4h_scoreboard/ea_articles.json', 'r') as articles_json:
+    with open('C4HScore/ea_articles.json', 'r') as articles_json:
         ea_art_dict = json.load(articles_json)
 
     ea_art_dict = ea_art_dict['ea_articles']
@@ -355,3 +484,8 @@ if __name__ == "__main__":
         ea_articles.append(EAArticle(a))
 
     #now the event stuff
+    fn = 'tests/test_event_nominate.csv'
+    event = load_csv_nominate(fn)
+    print(type(event))
+
+

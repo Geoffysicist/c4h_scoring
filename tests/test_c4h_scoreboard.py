@@ -13,6 +13,11 @@ def mock_event():
     mock_event.new_class('Class5', arena=arena2)
     # create a class that is not allocated to an arena
     mock_event.new_class('Class6')
+    #create a test rider horse combination
+    id = '1'
+    horse = mock_event.new_horse(name='Pal')
+    rider = mock_event.new_rider(given_name='Phil', surname='McCraken')
+    mock_event.new_combo(id, rider, horse)
     
     return mock_event
 
@@ -102,6 +107,10 @@ def test_C4HEvent_new_rider(mock_event):
             new_rider = mock_event.new_rider(surname=surname, given_name=given, ea_number=ea_number)
     assert str(e.value) == "Rider EA number should be a number 7 digits long"
 
+def test_C4HEvent_get_rider(mock_event):
+    rider = mock_event.get_rider('McCraken', 'Phil')
+    assert type(rider) == c4h.C4HRider
+
 def test_C4HEvent_new_horse(mock_event):
     name = "Heffalump"
     ea_number = '12345678'
@@ -118,11 +127,63 @@ def test_C4HEvent_new_horse(mock_event):
             new_horse = mock_event.new_horse(name, ea_number=ea_number)
     assert str(e.value) == "Rider EA number should be a number 8 digits long"
 
+def test_C4HEvent_get_horse(mock_event):
+    horse = mock_event.get_horse('Pal')
+    assert type(horse) == c4h.C4HHorse
 
-    #TODO add test for EA number length - 8 digits
+def test_C4HEvent_new_combo(mock_event):
+    initial_len_combo_list = len(mock_event.get_combos())
+    id = '2'
+    horse = mock_event.new_horse('Topless')
+    rider = mock_event.new_rider(('Gravity', 'Andy'))
+    this_combo = mock_event.new_combo(id, rider, horse)
+    assert type(this_combo) == c4h.C4HCombo
+    assert len(mock_event.get_combos()) - initial_len_combo_list == 1
+
+def test_C4HEvent_get_combo(mock_event):
+    this_combo = mock_event.get_combo('1')
+    assert type(this_combo) == c4h.C4HCombo
+    assert type(this_combo.get_rider()) == c4h.C4HRider
+    assert type(this_combo.get_horse()) == c4h.C4HHorse
+    that_combo = mock_event.get_combo('666')
+    assert that_combo is None
+    
 
 def test_C4HJumpClass_places(mock_event):
     this_class = mock_event.get_classes()[0]
     places = 6
     this_class.set_places(places)
     assert this_class.get_places() == places
+
+def test_C4HJumpClass_get_combo(mock_event):
+    this_combo = mock_event.get_combo('1')
+    assert type(this_combo) == c4h.C4HCombo
+    assert type(this_combo.get_rider()) == c4h.C4HRider
+    assert type(this_combo.get_horse()) == c4h.C4HHorse
+    that_combo = mock_event.get_combo('666')
+    assert that_combo is None
+
+def test_C4HJumpClass_add_combo(mock_event):
+    this_class = mock_event.get_classes()[0]
+    num_in_class = len(this_class.get_combos())
+    this_class.add_combo(mock_event.get_combo('1'))
+    assert len(this_class.get_combos()) - num_in_class == 1
+
+    with pytest.raises(ValueError) as e:
+            this_class.add_combo(mock_event.get_combo('1'))
+    assert str(e.value) == "Combination 1 already in class"
+
+
+def test_load_csv_nominate():
+    fn = 'tests/test_event_nominate.csv'
+    event = c4h.load_csv_nominate(fn)
+    assert len(event.get_classes()) == 2
+    for jc in event.get_classes():
+        assert type(jc) == c4h.C4HJumpClass
+        for c in jc.get_combos():
+            assert type(c) == c4h.C4HCombo
+            for r in c.get_riders():
+                assert type(r) == c4h.C4HRider
+            for h in c.get_horses():
+                assert type(h) == c4h.C4HHorse
+
