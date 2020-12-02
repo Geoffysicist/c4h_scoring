@@ -1,0 +1,19 @@
+--- # Baccabuggry World Cup
+Event details:
+  date: 2020-12-02
+    arena: Arena1
+      class: Class1
+        entry: 1
+      class: Class3
+      class: Class4
+      class: Class6
+    arena: Arena2
+      class: Class2
+      class: Class5
+
+Combinations:
+  entry: 1
+  rider:
+    surname: McCraken
+    given name: Phil
+  horse: Pal

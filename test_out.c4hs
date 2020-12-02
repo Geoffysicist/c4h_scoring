@@ -1,0 +1,100 @@
+--- # New Event
+Event details:
+  date: 2020-12-02
+    arena: Arena1
+      class: 1
+        entry: 1
+        entry: 2
+        entry: 3
+        entry: 4
+        entry: 5
+        entry: 6
+        entry: 7
+        entry: 8
+        entry: 9
+        entry: 10
+      class: 2
+        entry: 11
+        entry: 12
+        entry: 13
+        entry: 14
+        entry: 15
+        entry: 1
+        entry: 2
+
+Combinations:
+  entry: 1
+    rider:
+      surname: Mungus
+      given name: Hugh
+    horse: Passing Wind
+  entry: 2
+    rider:
+      surname: Dagg
+      given name: Fred
+    horse: Feral Cheryl
+  entry: 3
+    rider:
+      surname: Gator
+      given name: Ali
+    horse: Hoof Footer
+  entry: 4
+    rider:
+      surname: Gravity
+      given name: Andy
+    horse: Topless
+  entry: 5
+    rider:
+      surname: Bath
+      given name: Anita
+    horse: Nadzoff
+  entry: 6
+    rider:
+      surname: Down
+      given name: Ben
+    horse: Pants on Fire
+  entry: 7
+    rider:
+      surname: Zarzhoff
+      given name: Bernie
+    horse: Raw Prawn
+  entry: 8
+    rider:
+      surname: Zarzhoff
+      given name: Terry
+    horse: Sotally Tober
+  entry: 9
+    rider:
+      surname: Zarzhoff
+      given name: Bluey
+    horse: Buck Naked
+  entry: 10
+    rider:
+      surname: Board
+      given name: Bill
+    horse: Hayrack
+  entry: 11
+    rider:
+      surname: Ball
+      given name: Krystal
+    horse: Fugley
+  entry: 12
+    rider:
+      surname: Tallity
+      given name: Faye
+    horse: Paycheck
+  entry: 13
+    rider:
+      surname: Case
+      given name: Justin
+    horse: Broke but Happy
+  entry: 14
+    rider:
+      surname: Breath
+      given name: Xavier
+    horse: Bottoms Up
+  entry: 15
+    rider:
+      surname: Meeta
+      given name: Millie
+    horse: She'll Do

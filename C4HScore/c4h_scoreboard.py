@@ -14,7 +14,9 @@ examples.
 
 import json
 import csv
+from datetime import date
 # import pandas
+
 
 class EAArticle(object):
     '''EA/FEI article.
@@ -52,6 +54,8 @@ class C4HEvent(object):
         _horses (list): C4HHorse objects
         _combos (list): C4HCombos rider, horse, id
         _details (string): other information about the event
+        _dates (list): list of dates for the event
+        _indent (string): indent to use in yaml like output files. Default is 2 spaces
     '''
 
     def __init__(self, event_name):
@@ -62,6 +66,11 @@ class C4HEvent(object):
         self._horses = []
         self._combos = []
         self._details = ''
+        self._dates = [date.today()]
+        self._indent = '  '
+
+        # add default arena
+        self.new_arena('Arena1')
 
     def get_name(self):
         ''' returns the name of the event.'''
@@ -134,7 +143,8 @@ class C4HEvent(object):
         for c in self._classes:
             if c.get_id() == class_id:
                 raise ValueError('Class with id {} already exists'.format(class_id))
-                
+
+        if not arena: arena = self._arenas[0]        
         c = C4HJumpClass(class_id, arena=arena)
         self._classes.append(c)
         return c
@@ -219,7 +229,6 @@ class C4HEvent(object):
 
         return None
 
-
     def new_combo(self, id, rider=None, horse=None):
         '''creates a new rider and appends it to the _combos list.
 
@@ -252,6 +261,47 @@ class C4HEvent(object):
         '''
         return self._combos
 
+    def write_c4hs(self, fn):
+        '''Write event info to a yaml like file.
+
+        File has *.c4hs suffix
+        Hierachy is:
+            Event
+                Date
+                    Arena
+                        Class
+                            Combos
+                                id
+                                round
+            Combo
+                id
+                rider
+                    surname
+                    given_name
+                horse
+        '''
+
+        i = self._indent
+        with open(fn, 'w') as out_file:
+            out_file.write(f'--- # {self.get_name()}\n')
+            out_file.write(f'Event details:\n')
+            
+            for d in self._dates:
+                out_file.write(f'{i}date: {d}\n')
+                for a in self._arenas:
+                    out_file.write(f'{i}{i}arena: {a.get_id()}\n')
+                    for j in a.get_classes():
+                        out_file.write(f'{i}{i}{i}class: {j.get_id()}\n')
+                        for c in j.get_combos():
+                            out_file.write(f'{i}{i}{i}{i}entry: {c.get_id()}\n')
+            out_file.write(f'\nCombinations:\n')
+            for c in self._combos:
+                out_file.write(f'{i}entry: {c.get_id()}\n')
+                out_file.write(f'{i}{i}rider:\n')
+                r = c.get_rider()
+                out_file.write(f'{i}{i}{i}surname: {r.get_surname()}\n')
+                out_file.write(f'{i}{i}{i}given name: {r.get_given_name()}\n')
+                out_file.write(f'{i}{i}horse: {c.get_horse().get_name()}\n')
 
 class C4HArena(object):
     '''An arena in the event which holds classes.
@@ -339,6 +389,13 @@ class C4HJumpClass(object):
         '''
         return self._combos
 
+    def get_combo(self, id):
+        '''returns the C4HCombo with id == id else None if it doesn't exist.
+        '''
+        for c in self._combos:
+            if c.get_id() == id: return c
+
+        return None
 
     def add_combo(self, combo):
         '''Adds a C4HCombo to the class.
@@ -423,9 +480,8 @@ class C4HHorse(object):
         return self._ea_number
 
 
-
 # functions
-def load_csv_nominate(fn, event_name='New Event'):
+def read_csv_nominate(fn, event_name='New Event'):
     '''Loads event data from a nominate like csv file
 
     Args:
@@ -471,6 +527,8 @@ def load_csv_nominate(fn, event_name='New Event'):
 
     return event
 
+
+
 if __name__ == "__main__":
     ea_articles = []
 
@@ -485,7 +543,13 @@ if __name__ == "__main__":
 
     #now the event stuff
     fn = 'tests/test_event_nominate.csv'
-    event = load_csv_nominate(fn)
+    event = read_csv_nominate(fn)
     print(type(event))
+    for jc in event.get_classes():
+        print(f'Class: {jc.get_id()}')
+        for c in jc.get_combos():
+            rider = f'{c.get_rider().get_surname()}, {c.get_rider().get_given_name()}'
+            print(f'  Entry {c.get_id()} Rider: {rider} Horse: {c.get_horse().get_name()}')
 
-
+    fn = 'test_out.c4hs'
+    event.write_c4hs(fn)
