@@ -17,6 +17,10 @@ import yaml
 import csv
 from datetime import date
 # import pandas
+from tkinter import ttk
+# from ttkthemes import ThemedTk
+import tkinter as tk
+
 
 
 class EAArticle(object):
@@ -335,7 +339,6 @@ class C4HEvent(object):
             #     out_file.write(f'\n--- # Combo {c.get_id()} Details\n')
             #     yaml.dump(c, out_file)
 
-
 class C4HArena(object):
     '''An arena in the event which holds classes.
 
@@ -512,8 +515,70 @@ class C4HHorse(object):
     def get_ea_number(self):
         return self._ea_number
 
+class C4HScoreGUI(object):
+    ''' Big container for the rest of the stuff.
+
+    Attributes:
+        _event: C4HEvent - the big kahuna
+    '''
+    def __init__(self, master):
+        ''' creates the master window and sets the main menubar.
+        '''
+        self._title = 'Courses4Horses Score'
+        self._master = master
+        self._master.title(self._title)
+        self._master.iconphoto(False, tk.PhotoImage(file='assets\courses4horses log bare.png'))
+        self._master.geometry('1600x1200')
+        
+        # set the main menu
+        menubar = tk.Menu(self._master)
+        filemenu = tk.Menu(menubar, tearoff=0)
+        filemenu.add_command(label="New", command=self.new_event)
+        filemenu.add_separator()
+        filemenu.add_command(label="Exit", command=self._master.quit)   
+        menubar.add_cascade(label="File", menu=filemenu)
+
+        self._master.config(menu=menubar)
+    # filemenu.add_command(label="Open", command=donothing)
+    # filemenu.add_command(label="Save", command=donothing)
+
+
+    # helpmenu = Menu(menubar, tearoff=0)
+    # helpmenu.add_command(label="Help Index", command=donothing)
+    # helpmenu.add_command(label="About...", command=donothing)
+
+    def get_event(self):
+        print(self._event)
+
+    def new_event(self):
+        ''' Creates a new event and prompts for details.
+        '''
+        self._event = C4HEvent('New Event')
+        dlg = tk.Toplevel(self._master)
+        # dlg.transient(self._master)
+        dlg.geometry('1600x1200')
+        dlg.title(f'{self._title} - New Event')
+
+        event_name = tk.StringVar()
+        event_name_entry = ttk.Entry(dlg, width=50, textvariable=event_name)
+        event_name_entry.grid(column=1, row=0)
+
+        ttk.Label(dlg, text='Event Name: ').grid(column=0, row=0)
+        done_btn = ttk.Button(dlg, text='Done', default='active', command=lambda: print(event_name.get()))
+        done_btn.grid(column=1, row=1)
+        dlg.wait_visibility() # cant grab until visible
+        dlg.grab_set() # keeps focus on this dialog
+
+        for c in dlg.winfo_children():
+            c.grid_configure(padx=10, pady=10)
+        event_name_entry.focus()
+        # self._master.bind(Enter, self.get_event())
+
 
 # functions
+def new_event(name="New Event"):
+    return C4HEvent(name)
+
 def read_csv_nominate(fn, event_name='New Event'):
     '''Loads event data from a nominate like csv file
 
