@@ -13,6 +13,7 @@ examples.
 """
 
 import json
+import yaml
 import csv
 from datetime import date
 # import pandas
@@ -193,6 +194,9 @@ class C4HEvent(object):
         self._riders.append(r)
         return r
 
+    def get_riders(self):
+        return self._riders
+        
     def get_rider(self, surname, given_name):
         '''returns the C4HRider matching surname and given_name else None if rider doesn't exist.
         '''
@@ -302,6 +306,35 @@ class C4HEvent(object):
                 out_file.write(f'{i}{i}{i}surname: {r.get_surname()}\n')
                 out_file.write(f'{i}{i}{i}given name: {r.get_given_name()}\n')
                 out_file.write(f'{i}{i}horse: {c.get_horse().get_name()}\n')
+
+    def yaml_dump(self, fn):
+        '''Write event info to a yaml like file.
+
+        File has *.c4hs suffix
+        Hierachy is:
+            Event
+                Date
+                    Arena
+                        Class
+                            Combos
+                                id
+                                round
+            Combo
+                id
+                rider
+                    surname
+                    given_name
+                horse
+        '''
+
+        with open(fn, 'w') as out_file:
+            out_file.write('--- # Event Details\n')
+            yaml.dump(self, out_file)
+
+            # for c in self.get_combos():
+            #     out_file.write(f'\n--- # Combo {c.get_id()} Details\n')
+            #     yaml.dump(c, out_file)
+
 
 class C4HArena(object):
     '''An arena in the event which holds classes.
@@ -527,7 +560,11 @@ def read_csv_nominate(fn, event_name='New Event'):
 
     return event
 
-
+def load_yaml(fn):
+    with open(fn, 'r') as in_file:
+        this_event = yaml.load(in_file, Loader=yaml.FullLoader)
+    
+    return this_event
 
 if __name__ == "__main__":
     ea_articles = []
@@ -542,8 +579,8 @@ if __name__ == "__main__":
         ea_articles.append(EAArticle(a))
 
     #now the event stuff
-    fn = 'tests/test_event_nominate.csv'
-    event = read_csv_nominate(fn)
+    fn = 'test_output.chs'
+    event = yaml.load(fn)
     print(type(event))
     for jc in event.get_classes():
         print(f'Class: {jc.get_id()}')
@@ -551,5 +588,4 @@ if __name__ == "__main__":
             rider = f'{c.get_rider().get_surname()}, {c.get_rider().get_given_name()}'
             print(f'  Entry {c.get_id()} Rider: {rider} Horse: {c.get_horse().get_name()}')
 
-    fn = 'test_out.c4hs'
-    event.write_c4hs(fn)
+

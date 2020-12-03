@@ -1,5 +1,6 @@
 import pytest
 import C4HScore.c4h_scoreboard as c4h
+import yaml
 
 @pytest.fixture
 def mock_event():
@@ -130,6 +131,8 @@ def test_C4HEvent_get_combo(mock_event):
 def test_C4HEvent_write_c4hs(mock_event):
     mock_event.write_c4hs('test_output.c4hs')
 
+def test_C4HEvent_yaml_dump(mock_event):
+    mock_event.yaml_dump('test_output.c4hs')
 
 # Arena
 # -------------------------------------------------------------
@@ -186,6 +189,7 @@ def test_C4HJumpClass_add_combo(mock_event):
 def test_read_csv_nominate():
     fn = 'tests/test_event_nominate.csv'
     event = c4h.read_csv_nominate(fn)
+    event.yaml_dump('test_output.c4hs')
     assert len(event.get_classes()) == 2
     for jc in event.get_classes():
         assert type(jc) == c4h.C4HJumpClass
@@ -194,3 +198,8 @@ def test_read_csv_nominate():
             assert type(c.get_rider()) == c4h.C4HRider
             assert type(c.get_horse()) == c4h.C4HHorse
 
+def test_load_yaml():
+    fn = 'test_output.c4hs'
+    event = c4h.load_yaml(fn)
+    assert type(event) == c4h.C4HEvent
+    assert event.get_name() == 'Baccabuggry World Cup'

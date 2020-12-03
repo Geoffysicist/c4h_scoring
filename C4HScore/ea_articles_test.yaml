@@ -1,0 +1,74 @@
+--- # Articles
+EA:
+- _id: 238.2.2
+  alt_name: AM5
+  description: Jump-off Competition
+  jumpoffs:
+  - against_clock: true
+    jumps:
+    - combinations: required if in rounds
+      num: less than rounds
+    num: 1
+    table: AC
+  rounds:
+  - against_clock: true
+    jumps:
+    - combinations: allowed
+      num: unrestricted
+    num: 1
+    table: A
+  sub_arts:
+  - _id: 245.3
+    alt_name: AM7
+    description: Immediate Jump-off Competition
+- _id: 274.1
+  alt_name: null
+  description: Two Phase
+  jumpoffs:
+  - against_clock: null
+    jumps:
+    - combinations: allowed
+      num: 4-6
+    num: 1
+    table: null
+  rounds:
+  - against_clock: null
+    jumps:
+    - combinations: allowed
+      num: 7-9
+    num: 1
+    table: A
+  sub_arts:
+  - _id: 5.1
+    jumpoffs:
+    - against_clock: false
+      table: A
+    rounds:
+    - against_clock: false
+      table: A
+  - _id: 5.2
+    jumpoffs:
+    - against_clock: true
+      table: A
+    rounds:
+    - against_clock: false
+      table: A
+  - _id: 5.3
+    jumpoffs:
+    - against_clock: true
+      table: A
+    rounds:
+    - against_clock: true
+      table: A
+  - _id: 5.4
+    jumpoffs:
+    - table: C
+    rounds:
+    - against_clock: false
+      table: A
+  - _id: 5.1
+    jumpoffs:
+    - table: C
+    rounds:
+    - against_clock: true
+      table: A
