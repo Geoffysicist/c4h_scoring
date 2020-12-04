@@ -16,6 +16,8 @@ import json
 import yaml
 import csv
 import tkinter as tk
+import tkcalendar as cal
+import datetime as dt
 import ctypes
 
 # import pandas
@@ -533,8 +535,14 @@ class C4HScoreGUI(object):
         self._title = 'Courses4Horses Score'
         self._master = master
         self._master.title(self._title)
-        self._master.iconphoto(False, tk.PhotoImage(file='assets\courses4horses log bare.png'))
+        self._favicon = tk.PhotoImage(file='assets/courses4horses_logo_bare.png')
+        # self._master.iconphoto(False, tk.PhotoImage(file='assets/courses4horses_logo_bare.png'))
+        self._master.iconphoto(False, self._favicon)
         self._master.geometry('1600x1200')
+        mainframe = ttk.Notebook(self._master)
+        mainframe.grid(row=0, column=0, sticky="nsew")
+        self._master.grid_rowconfigure(0, weight=1)
+        self._master.grid_columnconfigure(0, weight=1)
         
         # set the main menu
         menubar = tk.Menu(self._master)
@@ -559,25 +567,57 @@ class C4HScoreGUI(object):
     def new_event(self):
         ''' Creates a new event and prompts for details.
         '''
-        self._event = C4HEvent('New Event')
+
         dlg = tk.Toplevel(self._master)
+        event_name = tk.StringVar(dlg,'New Event')
+
+        self._event = C4HEvent(event_name.get())
         # dlg.transient(self._master)
-        dlg.geometry('1600x1200')
-        dlg.title(f'{self._title} - New Event')
+        # dlg.geometry('1600x1200')
+        dlg.title(f'{self._title} - {event_name.get()}')
+        dlg.iconphoto(False, self._favicon)
 
-        event_name = tk.StringVar()
-        event_name_entry = ttk.Entry(dlg, width=50, textvariable=event_name)
-        event_name_entry.grid(column=1, row=0)
+        event_lbl = ttk.Label(dlg, text='Event Name: ')
+        event_name_entry = ttk.Entry(dlg, textvariable=event_name)
 
-        ttk.Label(dlg, text='Event Name: ').grid(column=0, row=0)
+        # date_ = date.today()
+        start_lbl = ttk.Label(dlg, text='Start Date: ')
+        start_picker = cal.DateEntry(dlg, date=date.today(), locale='en_AU')
+        # start_picker.selection_set(date.today())
+        end_lbl = ttk.Label(dlg, text='End Date: ')
+        end_picker = cal.DateEntry(dlg, date=start_picker.get_date(), 
+            mindate=start_picker.get_date(), locale='en_AU')
+        
+        # we need a local function to check start_date < end_date
+        def check_dates(eventObject):
+            print(start_picker.get_date())
+            if start_picker.get_date() > end_picker.get_date():
+                end_picker.set_date(start_picker.get_date())
+                end_picker.configure(mindate=start_picker.get_date())
+ 
+        start_picker.bind('<<DateEntrySelected>>', check_dates)
+        end_picker.bind('<<DateEntrySelected>>', check_dates)
+
         done_btn = ttk.Button(dlg, text='Done', default='active', command=lambda: print(event_name.get()))
+        cancel_btn = ttk.Button(dlg, text='Cancel', command=dlg.destroy)
         # done_btn = ttk.Button(dlg, text='Done', default='active', command=partial(print, event_name.get()))
-        done_btn.grid(column=1, row=1)
+
+        event_lbl.grid(column=1, row=1, sticky='E')
+        event_name_entry.grid(column=2, row=1, sticky='EW',columnspan=3)
+        start_lbl.grid(column=1, row=2, sticky='E')
+        start_picker.grid(column=2, row=2)
+        end_lbl.grid(column=3, row=2, sticky='E')
+        end_picker.grid(column=4, row=2)
+        done_btn.grid(column=2, row=3)
+        cancel_btn.grid(column=3, row=3)
+
         dlg.wait_visibility() # cant grab until visible
         dlg.grab_set() # keeps focus on this dialog
 
         for c in dlg.winfo_children():
             c.grid_configure(padx=10, pady=10)
+        start_lbl.grid_configure(padx=(100,10))
+        end_picker.grid_configure(padx=(10,100))
         event_name_entry.focus()
         # self._master.bind(Enter, self.get_event())
 

@@ -10,7 +10,7 @@ def test_event():
     print('done')
 
 def test_articles():
-    fn = 'C4HScore\ea_articles.yaml'
+    fn = 'C4HScore/ea_articles.yaml'
     with open(fn, 'r') as in_file:
         articles = yaml.load(in_file, Loader=yaml.FullLoader)
 
@@ -18,5 +18,6 @@ def test_articles():
         print(f'{a} {b}\n')
 
 if __name__ == "__main__":
-    test_articles()
+    event = c4h.C4HEvent('hello')
+    print(type(event))
     
