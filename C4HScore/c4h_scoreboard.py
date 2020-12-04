@@ -15,11 +15,17 @@ examples.
 import json
 import yaml
 import csv
-from datetime import date
+import tkinter as tk
+import ctypes
+
 # import pandas
 from tkinter import ttk
+from datetime import date
+from functools import partial
 # from ttkthemes import ThemedTk
-import tkinter as tk
+
+# makes dpi aware so tkinter text isnt blurry
+ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
 
@@ -565,6 +571,7 @@ class C4HScoreGUI(object):
 
         ttk.Label(dlg, text='Event Name: ').grid(column=0, row=0)
         done_btn = ttk.Button(dlg, text='Done', default='active', command=lambda: print(event_name.get()))
+        # done_btn = ttk.Button(dlg, text='Done', default='active', command=partial(print, event_name.get()))
         done_btn.grid(column=1, row=1)
         dlg.wait_visibility() # cant grab until visible
         dlg.grab_set() # keeps focus on this dialog

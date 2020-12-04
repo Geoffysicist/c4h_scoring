@@ -1,11 +1,11 @@
 # set up the gui
-from tkinter import PhotoImage, Menu
+# from tkinter import PhotoImage, Menu
 from ttkthemes import ThemedTk
 import c4h_scoreboard as c4h
-import ctypes
+# import ctypes
 
-# makes dpi aware so tkinter text isnt blurry
-ctypes.windll.shcore.SetProcessDpiAwareness(1)
+# # makes dpi aware so tkinter text isnt blurry
+# ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 def donothing():
     pass
