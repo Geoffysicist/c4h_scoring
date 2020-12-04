@@ -67,8 +67,9 @@ class C4HEvent(object):
         _horses (list): C4HHorse objects
         _combos (list): C4HCombos rider, horse, id
         _details (string): other information about the event
-        _dates (list): list of dates for the event
+        dates (list): list of dates for the event
         _indent (string): indent to use in yaml like output files. Default is 2 spaces
+        changed (bool): indicates whether the event has been changed since last save
     '''
 
     def __init__(self, event_name):
@@ -79,8 +80,9 @@ class C4HEvent(object):
         self._horses = []
         self._combos = []
         self._details = ''
-        self._dates = [date.today()]
+        self.dates = [date.today(),date.today()]
         self._indent = '  '
+        self.changed = True
 
         # add default arena
         self.new_arena('Arena1')
@@ -99,6 +101,18 @@ class C4HEvent(object):
             self._name = event_name
         else:
             raise TypeError(f"event_name {event_name} is not a string")
+
+    def set_dates(self, dates):
+        ''' Sets the start and end dates of the event
+
+        Args:
+            dates (list): list of datetimes [start, end]
+
+        '''
+        self.dates=dates
+
+    def get_dates(self):
+        return self.dates
 
     def new_arena(self, arena_id):
         '''creates a new arena and appends it to the arena list.
@@ -352,12 +366,12 @@ class C4HArena(object):
 
     Attributes:
         _id (string):
-        _event (C4HEvent):
+        event (C4HEvent):
     '''
 
     def __init__(self, arena_id, event):
         self._id = arena_id
-        self._event = event
+        self.event = event
 
     def get_id(self):
         return self._id
@@ -366,7 +380,7 @@ class C4HArena(object):
         '''returns the classes in this arena.
         '''
         classes = []
-        for c in self._event.get_classes():
+        for c in self.event.get_classes():
             if c.get_arena() == self:
                 classes.append(c)
 
@@ -527,20 +541,22 @@ class C4HScoreGUI(object):
     ''' Big container for the rest of the stuff.
 
     Attributes:
-        _event: C4HEvent - the big kahuna
+        event: C4HEvent - the big kahuna, or None before initialisation
     '''
     def __init__(self, master):
         ''' creates the master window and sets the main menubar.
         '''
+        self.event = None
+
+        # set up the gui
         self._title = 'Courses4Horses Score'
         self._master = master
         self._master.title(self._title)
         self._favicon = tk.PhotoImage(file='assets/courses4horses_logo_bare.png')
-        # self._master.iconphoto(False, tk.PhotoImage(file='assets/courses4horses_logo_bare.png'))
         self._master.iconphoto(False, self._favicon)
         self._master.geometry('1600x1200')
-        mainframe = ttk.Notebook(self._master)
-        mainframe.grid(row=0, column=0, sticky="nsew")
+        self._mainframe = ttk.Notebook(self._master)
+        self._mainframe.grid(row=0, column=0, sticky="nsew")
         self._master.grid_rowconfigure(0, weight=1)
         self._master.grid_columnconfigure(0, weight=1)
         
@@ -551,7 +567,6 @@ class C4HScoreGUI(object):
         filemenu.add_separator()
         filemenu.add_command(label="Exit", command=self._master.quit)   
         menubar.add_cascade(label="File", menu=filemenu)
-
         self._master.config(menu=menubar)
     # filemenu.add_command(label="Open", command=donothing)
     # filemenu.add_command(label="Save", command=donothing)
@@ -562,16 +577,21 @@ class C4HScoreGUI(object):
     # helpmenu.add_command(label="About...", command=donothing)
 
     def get_event(self):
-        print(self._event)
+        print(self.event)
 
     def new_event(self):
         ''' Creates a new event and prompts for details.
         '''
 
+        # TODO add warning if event has changed and not been saved
+        if self.event:
+            if self.event.changed:
+                print('TODO warning')
+                return
+
         dlg = tk.Toplevel(self._master)
         event_name = tk.StringVar(dlg,'New Event')
 
-        self._event = C4HEvent(event_name.get())
         # dlg.transient(self._master)
         # dlg.geometry('1600x1200')
         dlg.title(f'{self._title} - {event_name.get()}')
@@ -590,15 +610,22 @@ class C4HScoreGUI(object):
         
         # we need a local function to check start_date < end_date
         def check_dates(eventObject):
-            print(start_picker.get_date())
             if start_picker.get_date() > end_picker.get_date():
                 end_picker.set_date(start_picker.get_date())
                 end_picker.configure(mindate=start_picker.get_date())
  
+        # local function to set event with local variables
+        def set_event():
+            self.event = C4HEvent(event_name.get())
+            self.event.set_dates([start_picker.get_date(),end_picker.get_date()])
+            print(self.event.get_dates())
+            print(self.event.get_name())
+            dlg.destroy()
+
         start_picker.bind('<<DateEntrySelected>>', check_dates)
         end_picker.bind('<<DateEntrySelected>>', check_dates)
 
-        done_btn = ttk.Button(dlg, text='Done', default='active', command=lambda: print(event_name.get()))
+        done_btn = ttk.Button(dlg, text='Done', default='active', command=set_event)
         cancel_btn = ttk.Button(dlg, text='Cancel', command=dlg.destroy)
         # done_btn = ttk.Button(dlg, text='Done', default='active', command=partial(print, event_name.get()))
 
@@ -611,15 +638,17 @@ class C4HScoreGUI(object):
         done_btn.grid(column=2, row=3)
         cancel_btn.grid(column=3, row=3)
 
-        dlg.wait_visibility() # cant grab until visible
-        dlg.grab_set() # keeps focus on this dialog
-
         for c in dlg.winfo_children():
             c.grid_configure(padx=10, pady=10)
         start_lbl.grid_configure(padx=(100,10))
         end_picker.grid_configure(padx=(10,100))
         event_name_entry.focus()
-        # self._master.bind(Enter, self.get_event())
+        event_name_entry.select_range(0,len(event_name.get()))
+
+        dlg.wait_visibility() # cant grab until visible
+        dlg.grab_set() # keeps focus on this dialog
+
+
 
 
 # functions
