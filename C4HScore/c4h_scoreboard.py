@@ -21,7 +21,7 @@ import datetime as dt
 import ctypes
 
 # import pandas
-from tkinter import ttk
+from tkinter import ttk, filedialog, messagebox
 from datetime import date
 from functools import partial
 # from ttkthemes import ThemedTk
@@ -61,6 +61,7 @@ class C4HEvent(object):
 
     Attributes:
         _name (string): the event name
+        filename (str): the name of the event file. None for unsaved events
         _arenas (list): C4HArena objects
         _classes (list): C4HJumpClass objects
         _riders (list): C4HRider objects
@@ -74,6 +75,7 @@ class C4HEvent(object):
 
     def __init__(self, event_name):
         self._name = event_name
+        self.filename = None
         self._arenas = []
         self._classes = []
         self._riders = []
@@ -316,7 +318,7 @@ class C4HEvent(object):
             out_file.write(f'--- # {self.get_name()}\n')
             out_file.write(f'Event details:\n')
             
-            for d in self._dates:
+            for d in self.dates:
                 out_file.write(f'{i}date: {d}\n')
                 for a in self._arenas:
                     out_file.write(f'{i}{i}arena: {a.get_id()}\n')
@@ -360,6 +362,35 @@ class C4HEvent(object):
             # for c in self.get_combos():
             #     out_file.write(f'\n--- # Combo {c.get_id()} Details\n')
             #     yaml.dump(c, out_file)
+
+    def file_save(self):
+        with open(self.filename, 'w') as out_file:
+            out_file.write('--- # C4H Event Details\n')
+            yaml.dump(self, out_file)
+
+        self.changed = False
+
+    def file_save_as(self, fn):
+        with open(fn, 'w') as out_file:
+            out_file.write('--- # C4H Event Details\n')
+            yaml.dump(self, out_file)
+        
+        self.filename = fn
+        self.changed = False
+
+    def file_open(self, fn):
+        ''' Creates an event from a c4hs yaml file.
+        
+        Returns:
+            C4HEvent
+        '''
+        with open(fn, 'r') as in_file:
+            new_event = yaml.load(in_file, Loader=yaml.FullLoader)
+            print(type(new_event))
+
+        return new_event
+
+
 
 class C4HArena(object):
     '''An arena in the event which holds classes.
@@ -541,7 +572,7 @@ class C4HScoreGUI(object):
     ''' Big container for the rest of the stuff.
 
     Attributes:
-        event: C4HEvent - the big kahuna, or None before initialisation
+        event (C4HEvent): The big kahuna, or None before initialisation
     '''
     def __init__(self, master):
         ''' creates the master window and sets the main menubar.
@@ -561,33 +592,81 @@ class C4HScoreGUI(object):
         self._master.grid_columnconfigure(0, weight=1)
         
         # set the main menu
-        menubar = tk.Menu(self._master)
-        filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="New", command=self.new_event)
-        filemenu.add_separator()
-        filemenu.add_command(label="Exit", command=self._master.quit)   
-        menubar.add_cascade(label="File", menu=filemenu)
-        self._master.config(menu=menubar)
-    # filemenu.add_command(label="Open", command=donothing)
-    # filemenu.add_command(label="Save", command=donothing)
+        self.menubar = tk.Menu(self._master)
+
+        # the event menu
+        self.eventmenu = tk.Menu(self.menubar, tearoff=0)
+        self.eventmenu.add_command(label="New", command=self.event_new)
+        self.eventmenu.add_command(label="Open", command=self.event_open)
+        self.eventmenu.add_command(label="Edit", command=self.event_edit)
+        self.eventmenu.add_command(label="Save", command=self.event_save)
+        self.eventmenu.add_command(label="Save As", command=self.event_save_as)
+        self.eventmenu.add_separator()
+        self.eventmenu.add_command(label="Print", command=self.event_print)
+        self.eventmenu.add_separator()
+        self.eventmenu.add_command(label="Exit", command=self._master.quit)   
+        self.menubar.add_cascade(label="Event", menu=self.eventmenu)
+
+        # the class menu
+        self.classmenu = tk.Menu(self.menubar, tearoff=0)
+        self.classmenu.add_command(label="New", command=self.new_class)
+        self.classmenu.add_command(label="Open", command=self.open_class)
+        self.classmenu.add_command(label="Edit", command=self.edit_class)
+
+
+        self._master.config(menu=self.menubar)
+
+        self.update()
+    
+    
+    # eventmenu.add_command(label="Open", command=donothing)
+    # eventmenu.add_command(label="Save", command=donothing)
 
 
     # helpmenu = Menu(menubar, tearoff=0)
     # helpmenu.add_command(label="Help Index", command=donothing)
     # helpmenu.add_command(label="About...", command=donothing)
 
-    def get_event(self):
-        print(self.event)
+    def update(self):
+        print(type(self.event))
 
-    def new_event(self):
-        ''' Creates a new event and prompts for details.
+        # enable/disable menu items depending on event state
+        if not self.event:
+            self.eventmenu.entryconfig("Save", state="disabled")
+            self.eventmenu.entryconfig("Save As", state="disabled")
+        else:    
+            self.eventmenu.entryconfig("Save As", state="normal")
+        
+            if self.event.changed and self.event.filename:
+                self.eventmenu.entryconfig("Save", state="normal")
+            else:
+                self.eventmenu.entryconfig("Save", state="disabled")
+
+
+    def get_event(self):
+        return self.event
+
+    def event_new(self):
+        ''' Opens a new event dialog.
         '''
 
         # TODO add warning if event has changed and not been saved
         if self.event:
             if self.event.changed:
-                print('TODO warning')
-                return
+                save_changes = messagebox.askyesnocancel(
+                    title="Are you sure you aren't making a big mistake?", 
+                    message=
+                        'WARNING: You have unsaved changes! Do you want to save them?'
+                    )
+
+                if save_changes == True:
+                    if self.event.filename:
+                        self.event_save()
+                    else:
+                        self.event_save_as()
+                elif save_changes == None:
+                    # cancelled so do nothing
+                    return
 
         dlg = tk.Toplevel(self._master)
         event_name = tk.StringVar(dlg,'New Event')
@@ -621,6 +700,7 @@ class C4HScoreGUI(object):
             print(self.event.get_dates())
             print(self.event.get_name())
             dlg.destroy()
+            self.update()
 
         start_picker.bind('<<DateEntrySelected>>', check_dates)
         end_picker.bind('<<DateEntrySelected>>', check_dates)
@@ -648,8 +728,65 @@ class C4HScoreGUI(object):
         dlg.wait_visibility() # cant grab until visible
         dlg.grab_set() # keeps focus on this dialog
 
+    def event_open(self):
+        '''Opens an existing event from a c4hs file.
 
+        Uses a filedialog to get filename and passes this to C4HEvent.open()
+        Warns user if unsaved data
+        '''
+        if self.event.changed:
+            save_changes = messagebox.askyesnocancel(
+                title="Are you sure you aren't making a big mistake?", 
+                message=
+                    'WARNING: You have unsaved changes! Do you want to save them?'
+                )
 
+            if save_changes == True:
+                if self.event.filename:
+                    self.file_save()
+                else:
+                    self.file_save_as()
+            elif save_changes == None:
+                # cancelled so do nothing
+                return
+
+        fn = filedialog.askopenfilename(
+            title="Select file to open",
+            filetypes=[('C4HScore files','*.c4hs')])
+
+        #if cancel button wasn't clicked
+        if fn:
+            print(f'the filename is {fn}')
+            # if no event yet need to create one
+            if not self.event:
+                self.event = C4HEvent('Temp Event')
+            
+            self.event = self.event.file_open(fn)
+            self.event.changed = False
+
+            self.update()
+    
+    def event_save(self):
+        self.event.file_save()
+
+    def event_save_as(self):
+        '''Saves the event as a c4hs yaml file.
+
+        Opens a filedialog and then passes fn to C4HEvent.save_as()
+        '''
+        fn = filedialog.asksaveasfilename(
+            title="Save file as",
+            filetypes=[('C4HScore files','*.c4hs')])
+
+        #if cancel button wasn't clicked
+        if fn:
+            self.event.file_save_as(fn)
+
+    def file_print(self):
+        if self.event:
+            print(self.event.get_name())
+        else:
+            print(type(self.event))
 
 # functions
 def new_event(name="New Event"):
@@ -707,6 +844,8 @@ def load_yaml(fn):
     
     return this_event
 
+
+
 if __name__ == "__main__":
     ea_articles = []
 
@@ -720,13 +859,6 @@ if __name__ == "__main__":
         ea_articles.append(EAArticle(a))
 
     #now the event stuff
-    fn = 'test_output.chs'
-    event = yaml.load(fn)
-    print(type(event))
-    for jc in event.get_classes():
-        print(f'Class: {jc.get_id()}')
-        for c in jc.get_combos():
-            rider = f'{c.get_rider().get_surname()}, {c.get_rider().get_given_name()}'
-            print(f'  Entry {c.get_id()} Rider: {rider} Horse: {c.get_horse().get_name()}')
+
 
 

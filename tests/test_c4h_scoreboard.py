@@ -202,4 +202,3 @@ def test_load_yaml():
     fn = 'test_output.c4hs'
     event = c4h.load_yaml(fn)
     assert type(event) == c4h.C4HEvent
-    assert event.get_name() == 'Baccabuggry World Cup'
