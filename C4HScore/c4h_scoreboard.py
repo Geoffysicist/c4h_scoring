@@ -13,6 +13,23 @@ examples.
 """
 
 import json
+import yaml
+import csv
+import tkinter as tk
+import tkcalendar as cal
+import datetime as dt
+import ctypes
+
+# import pandas
+from tkinter import ttk, filedialog, messagebox
+from datetime import date
+from functools import partial
+# from ttkthemes import ThemedTk
+
+# makes dpi aware so tkinter text isnt blurry
+ctypes.windll.shcore.SetProcessDpiAwareness(1)
+
+
 
 class EAArticle(object):
     '''EA/FEI article.
@@ -44,20 +61,33 @@ class C4HEvent(object):
 
     Attributes:
         _name (string): the event name
+        filename (str): the name of the event file. None for unsaved events
         _arenas (list): C4HArena objects
         _classes (list): C4HJumpClass objects
         _riders (list): C4HRider objects
         _horses (list): C4HHorse objects
+        _combos (list): C4HCombos rider, horse, id
         _details (string): other information about the event
+        dates (list): list of dates for the event
+        _indent (string): indent to use in yaml like output files. Default is 2 spaces
+        changed (bool): indicates whether the event has been changed since last save
     '''
 
     def __init__(self, event_name):
         self._name = event_name
+        self.filename = None
         self._arenas = []
         self._classes = []
         self._riders = []
         self._horses = []
+        self._combos = []
         self._details = ''
+        self.dates = [date.today(),date.today()]
+        self._indent = '  '
+        self.changed = True
+
+        # add default arena
+        self.new_arena('Arena1')
 
     def get_name(self):
         ''' returns the name of the event.'''
@@ -73,6 +103,18 @@ class C4HEvent(object):
             self._name = event_name
         else:
             raise TypeError(f"event_name {event_name} is not a string")
+
+    def set_dates(self, dates):
+        ''' Sets the start and end dates of the event
+
+        Args:
+            dates (list): list of datetimes [start, end]
+
+        '''
+        self.dates=dates
+
+    def get_dates(self):
+        return self.dates
 
     def new_arena(self, arena_id):
         '''creates a new arena and appends it to the arena list.
@@ -130,7 +172,8 @@ class C4HEvent(object):
         for c in self._classes:
             if c.get_id() == class_id:
                 raise ValueError('Class with id {} already exists'.format(class_id))
-                
+
+        if not arena: arena = self._arenas[0]        
         c = C4HJumpClass(class_id, arena=arena)
         self._classes.append(c)
         return c
@@ -179,8 +222,20 @@ class C4HEvent(object):
         self._riders.append(r)
         return r
 
+    def get_riders(self):
+        return self._riders
+        
+    def get_rider(self, surname, given_name):
+        '''returns the C4HRider matching surname and given_name else None if rider doesn't exist.
+        '''
+        for r in self._riders:
+            if (r.get_surname() == surname and r.get_given_name() == given_name):
+                return r
+
+        return None
+
     def new_horse(self, name, ea_number=None):
-        '''creates a new rider and appends it to the rider list.
+        '''creates a new horse and appends it to the _horses list.
 
         Args:
             name (string): 
@@ -197,17 +252,155 @@ class C4HEvent(object):
         self._horses.append(h)
         return h
 
+    def get_horse(self, name):
+        '''returns the C4HHorse matching name else None if horse doesn't exist.
+        '''
+        for h in self._horses:
+            if (h.get_name() == name):
+                return h
+
+        return None
+
+    def new_combo(self, id, rider=None, horse=None):
+        '''creates a new rider and appends it to the _combos list.
+
+        Args:
+            id (str): unique id
+            rider (C4HRider):
+            horse(C4HHorse)
+
+        Returns:
+            C4HCombo
+        '''
+        for c in self._combos:
+            if c.get_id() == id:
+                raise ValueError(f"Combo ID {id} already exists")
+
+        c = C4HCombo(id, rider, horse)
+        self._combos.append(c)
+        return c
+
+    def get_combo(self, id):
+        '''returns the C4HCombo with id == id else None if it doesn't exist.
+        '''
+        for c in self._combos:
+            if c.get_id() == id: return c
+
+        return None
+
+    def get_combos(self):
+        '''Returns a list of C4HCombo
+        '''
+        return self._combos
+
+    def write_c4hs(self, fn):
+        '''Write event info to a yaml like file.
+
+        File has *.c4hs suffix
+        Hierachy is:
+            Event
+                Date
+                    Arena
+                        Class
+                            Combos
+                                id
+                                round
+            Combo
+                id
+                rider
+                    surname
+                    given_name
+                horse
+        '''
+
+        i = self._indent
+        with open(fn, 'w') as out_file:
+            out_file.write(f'--- # {self.get_name()}\n')
+            out_file.write(f'Event details:\n')
+            
+            for d in self.dates:
+                out_file.write(f'{i}date: {d}\n')
+                for a in self._arenas:
+                    out_file.write(f'{i}{i}arena: {a.get_id()}\n')
+                    for j in a.get_classes():
+                        out_file.write(f'{i}{i}{i}class: {j.get_id()}\n')
+                        for c in j.get_combos():
+                            out_file.write(f'{i}{i}{i}{i}entry: {c.get_id()}\n')
+            out_file.write(f'\nCombinations:\n')
+            for c in self._combos:
+                out_file.write(f'{i}entry: {c.get_id()}\n')
+                out_file.write(f'{i}{i}rider:\n')
+                r = c.get_rider()
+                out_file.write(f'{i}{i}{i}surname: {r.get_surname()}\n')
+                out_file.write(f'{i}{i}{i}given name: {r.get_given_name()}\n')
+                out_file.write(f'{i}{i}horse: {c.get_horse().get_name()}\n')
+
+    def yaml_dump(self, fn):
+        '''Write event info to a yaml like file.
+
+        File has *.c4hs suffix
+        Hierachy is:
+            Event
+                Date
+                    Arena
+                        Class
+                            Combos
+                                id
+                                round
+            Combo
+                id
+                rider
+                    surname
+                    given_name
+                horse
+        '''
+
+        with open(fn, 'w') as out_file:
+            out_file.write('--- # Event Details\n')
+            yaml.dump(self, out_file)
+
+            # for c in self.get_combos():
+            #     out_file.write(f'\n--- # Combo {c.get_id()} Details\n')
+            #     yaml.dump(c, out_file)
+
+    def file_save(self):
+        with open(self.filename, 'w') as out_file:
+            out_file.write('--- # C4H Event Details\n')
+            yaml.dump(self, out_file)
+
+        self.changed = False
+
+    def file_save_as(self, fn):
+        with open(fn, 'w') as out_file:
+            out_file.write('--- # C4H Event Details\n')
+            yaml.dump(self, out_file)
+        
+        self.filename = fn
+        self.changed = False
+
+    def file_open(self, fn):
+        ''' Creates an event from a c4hs yaml file.
+        
+        Returns:
+            C4HEvent
+        '''
+        with open(fn, 'r') as in_file:
+            new_event = yaml.load(in_file, Loader=yaml.FullLoader)
+            print(type(new_event))
+
+        return new_event
+
 class C4HArena(object):
     '''An arena in the event which holds classes.
 
     Attributes:
         _id (string):
-        _event (C4HEvent):
+        event (C4HEvent):
     '''
 
     def __init__(self, arena_id, event):
         self._id = arena_id
-        self._event = event
+        self.event = event
 
     def get_id(self):
         return self._id
@@ -216,7 +409,7 @@ class C4HArena(object):
         '''returns the classes in this arena.
         '''
         classes = []
-        for c in self._event.get_classes():
+        for c in self.event.get_classes():
             if c.get_arena() == self:
                 classes.append(c)
 
@@ -250,7 +443,7 @@ class C4HJumpClass(object):
         self._judge = None
         self._cd = None
         self._places = places
-        self._combinations = []
+        self._combos = []
 
     def get_id(self):
         return self._id
@@ -278,19 +471,50 @@ class C4HJumpClass(object):
     def get_places(self):
         return self._places
 
+    def get_combos(self):
+        '''Returns a list of C4HCombo
+        '''
+        return self._combos
+
+    def get_combo(self, id):
+        '''returns the C4HCombo with id == id else None if it doesn't exist.
+        '''
+        for c in self._combos:
+            if c.get_id() == id: return c
+
+        return None
+
+    def add_combo(self, combo):
+        '''Adds a C4HCombo to the class.
+        '''
+        for c in self._combos:
+            if c == combo:
+                raise ValueError(f"Combination {c.get_id()} already in class")
+        
+        self._combos.append(combo)
+
 class C4HCombo(object):
     '''Rider/horse combinations.
 
     Attributes:
         _id (int): unique id for combination
         _rider (C4HRider):
-        _horse (C4HHorse)
+        _horse (C4HHorse):
     '''
 
-    def __init__(self, id, rider=None, horse=None):
+    def __init__(self, id, rider, horse):
         self._id = id
         self._rider = rider
         self._horse= horse
+
+    def get_id(self):
+        return self._id
+
+    def get_rider(self):
+        return self._rider
+
+    def get_horse(self):
+        return self._horse
 
 class C4HRider(object):
     '''Rider details.
@@ -341,12 +565,302 @@ class C4HHorse(object):
 
     def get_ea_number(self):
         return self._ea_number
+
+class C4HScoreGUI(object):
+    ''' Big container for the rest of the stuff.
+
+    Attributes:
+        event (C4HEvent): The big kahuna, or None before initialisation
+    '''
+    def __init__(self, master):
+        ''' creates the master window and sets the main menubar.
+        '''
+        self.event = None
+
+        # set up the gui
+        self._title = 'Courses4Horses Score'
+        self._master = master
+        self._master.title(self._title)
+        self._favicon = tk.PhotoImage(file='assets/courses4horses_logo_bare.png')
+        self._master.iconphoto(False, self._favicon)
+        self._master.geometry('1600x1200')
+        self._mainframe = ttk.Notebook(self._master)
+        self._mainframe.grid(row=0, column=0, sticky="nsew")
+        self._master.grid_rowconfigure(0, weight=1)
+        self._master.grid_columnconfigure(0, weight=1)
+        
+        # set the main menu
+        self.menubar = tk.Menu(self._master)
+
+        # the event menu
+        self.eventmenu = tk.Menu(self.menubar, tearoff=0)
+        self.eventmenu.add_command(label="New", command=self.event_new)
+        self.eventmenu.add_command(label="Open", command=self.event_open)
+        self.eventmenu.add_command(label="Edit", command=self.event_edit)
+        self.eventmenu.add_command(label="Save", command=self.event_save)
+        self.eventmenu.add_command(label="Save As", command=self.event_save_as)
+        self.eventmenu.add_separator()
+        self.eventmenu.add_command(label="Print", command=self.event_print)
+        self.eventmenu.add_separator()
+        self.eventmenu.add_command(label="Exit", command=self._master.quit)   
+        self.menubar.add_cascade(label="Event", menu=self.eventmenu)
+
+        # the class menu
+        self.classmenu = tk.Menu(self.menubar, tearoff=0)
+        self.classmenu.add_command(label="New", command=self.class_new)
+        self.classmenu.add_command(label="Open", command=self.class_open)
+        self.classmenu.add_command(label="Edit", command=self.class_edit)
+        self.menubar.add_cascade(label="Class", menu=self.classmenu)
+
+
+        self._master.config(menu=self.menubar)
+
+        self.update()
+
+    def update(self):
+        print(type(self.event))
+
+        # enable/disable menu items depending on event state
+        if not self.event:
+            self.eventmenu.entryconfig("Save", state="disabled")
+            self.eventmenu.entryconfig("Save As", state="disabled")
+            self.eventmenu.entryconfig("Edit", state="disabled")
+            self.menubar.entryconfig("Class", state="disabled")
+        else:    
+            self.eventmenu.entryconfig("Save As", state="normal")
+            self.eventmenu.entryconfig("Edit", state="normal")
+            self.menubar.entryconfig("Class", state="normal")
+        
+            if self.event.changed and self.event.filename:
+                self.eventmenu.entryconfig("Save", state="normal")
+            else:
+                self.eventmenu.entryconfig("Save", state="disabled")
+
+            if len(self.event._classes) == 0:
+                self.classmenu.entryconfig("Edit", state="disabled")
+            else:
+                self.classmenu.entryconfig("Edit", state="normal")
+
+    def get_event(self):
+        return self.event
+
+    def event_new(self):
+        ''' Opens a new event dialog.
+        '''
+
+        # TODO add warning if event has changed and not been saved
+        if self.event:
+            if self.event.changed:
+                save_changes = messagebox.askyesnocancel(
+                    title="Are you sure you aren't making a big mistake?", 
+                    message=
+                        'WARNING: You have unsaved changes! Do you want to save them?'
+                    )
+
+                if save_changes == True:
+                    if self.event.filename:
+                        self.event_save()
+                    else:
+                        self.event_save_as()
+                elif save_changes == None:
+                    # cancelled so do nothing
+                    return
+
+        dlg = tk.Toplevel(self._master)
+        event_name = tk.StringVar(dlg,'New Event')
+
+        # dlg.transient(self._master)
+        # dlg.geometry('1600x1200')
+        dlg.title(f'{self._title} - {event_name.get()}')
+        dlg.iconphoto(False, self._favicon)
+
+        event_lbl = ttk.Label(dlg, text='Event Name: ')
+        event_name_entry = ttk.Entry(dlg, textvariable=event_name)
+
+        # date_ = date.today()
+        start_lbl = ttk.Label(dlg, text='Start Date: ')
+        start_picker = cal.DateEntry(dlg, date=date.today(), locale='en_AU')
+        # start_picker.selection_set(date.today())
+        end_lbl = ttk.Label(dlg, text='End Date: ')
+        end_picker = cal.DateEntry(dlg, date=start_picker.get_date(), 
+            mindate=start_picker.get_date(), locale='en_AU')
+        
+        # we need a local function to check start_date < end_date
+        def check_dates(eventObject):
+            if start_picker.get_date() > end_picker.get_date():
+                end_picker.set_date(start_picker.get_date())
+                end_picker.configure(mindate=start_picker.get_date())
+ 
+        # local function to set event with local variables
+        def set_event():
+            self.event = C4HEvent(event_name.get())
+            self.event.set_dates([start_picker.get_date(),end_picker.get_date()])
+            print(self.event.get_dates())
+            print(self.event.get_name())
+            dlg.destroy()
+            self.update()
+
+        start_picker.bind('<<DateEntrySelected>>', check_dates)
+        end_picker.bind('<<DateEntrySelected>>', check_dates)
+
+        done_btn = ttk.Button(dlg, text='Done', default='active', command=set_event)
+        cancel_btn = ttk.Button(dlg, text='Cancel', command=dlg.destroy)
+        # done_btn = ttk.Button(dlg, text='Done', default='active', command=partial(print, event_name.get()))
+
+        event_lbl.grid(column=1, row=1, sticky='E')
+        event_name_entry.grid(column=2, row=1, sticky='EW',columnspan=3)
+        start_lbl.grid(column=1, row=2, sticky='E')
+        start_picker.grid(column=2, row=2)
+        end_lbl.grid(column=3, row=2, sticky='E')
+        end_picker.grid(column=4, row=2)
+        done_btn.grid(column=2, row=3)
+        cancel_btn.grid(column=3, row=3)
+
+        for c in dlg.winfo_children():
+            c.grid_configure(padx=10, pady=10)
+        start_lbl.grid_configure(padx=(100,10))
+        end_picker.grid_configure(padx=(10,100))
+        event_name_entry.focus()
+        event_name_entry.select_range(0,len(event_name.get()))
+
+        dlg.wait_visibility() # cant grab until visible
+        dlg.grab_set() # keeps focus on this dialog
+
+    def event_open(self):
+        '''Opens an existing event from a c4hs file.
+
+        Uses a filedialog to get filename and passes this to C4HEvent.open()
+        Warns user if unsaved data
+        '''
+        if self.event.changed:
+            save_changes = messagebox.askyesnocancel(
+                title="Are you sure you aren't making a big mistake?", 
+                message=
+                    'WARNING: You have unsaved changes! Do you want to save them?'
+                )
+
+            if save_changes == True:
+                if self.event.filename:
+                    self.event_save()
+                else:
+                    self.event_save_as()
+            elif save_changes == None:
+                # cancelled so do nothing
+                return
+
+        fn = filedialog.askopenfilename(
+            title="Select file to open",
+            filetypes=[('C4HScore files','*.c4hs')])
+
+        #if cancel button wasn't clicked
+        if fn:
+            print(f'the filename is {fn}')
+            # if no event yet need to create one
+            if not self.event:
+                self.event = C4HEvent('Temp Event')
+            
+            self.event = self.event.file_open(fn)
+            self.event.changed = False
+
+            self.update()
+
+    def event_edit(self):
+        print('event edit stubb')
     
+    def event_save(self):
+        self.event.file_save()
+
+    def event_save_as(self):
+        '''Saves the event as a c4hs yaml file.
+
+        Opens a filedialog and then passes fn to C4HEvent.save_as()
+        '''
+        fn = filedialog.asksaveasfilename(
+            title="Save file as",
+            filetypes=[('C4HScore files','*.c4hs')])
+
+        #if cancel button wasn't clicked
+        if fn:
+            self.event.file_save_as(fn)
+
+    def event_print(self):
+        if self.event:
+            print(self.event.get_name())
+        else:
+            print(type(self.event))
+
+    def class_new(self):
+        print('class_new stub')
+
+    def class_open(self):
+        print('class_open stub')
+
+    def class_edit(self):
+        print('class_edit stub')
+
+# functions
+def new_event(name="New Event"):
+    return C4HEvent(name)
+
+def read_csv_nominate(fn, event_name='New Event'):
+    '''Loads event data from a nominate like csv file
+
+    Args:
+        fn (string): path and filename
+        event_name (string): the name of the event
+
+    Returns:
+        C4HEvent
+    '''
+
+    # event_data = pandas.read_csv(fn)
+    with open(fn, newline='') as in_file:
+        in_data = csv.DictReader(in_file)
+        event = C4HEvent(event_name)
+        for entry in in_data:
+            rider = entry['Rider'].split(' ')
+            given_name = rider[0]
+            surname = ' '.join(rider[1:])
+            horse = entry['Horse']
+            id = entry['ID']
+            jumpclass = entry['Class']
+            if not event.get_rider(surname, given_name):
+                rider = event.new_rider(surname=surname, given_name=given_name)
+            else:
+                rider = event.get_rider(surname, given_name)
+            if not event.get_horse(horse):
+                horse = event.new_horse(horse)
+            else:
+                horse = event.get_horse(horse)
+            
+            if not event.get_combo(id):
+                combo = event.new_combo(id, rider=rider, horse=horse)
+            else:
+                combo = event.get_combo(id)
+            
+            if not event.get_class(jumpclass):
+                jumpclass = event.new_class(jumpclass)
+            else:
+                jumpclass = event.get_class(jumpclass)
+
+            if not jumpclass.get_combo(combo):
+                jumpclass.add_combo(combo)
+
+    return event
+
+def load_yaml(fn):
+    with open(fn, 'r') as in_file:
+        this_event = yaml.load(in_file, Loader=yaml.FullLoader)
+    
+    return this_event
+
+
+
 if __name__ == "__main__":
     ea_articles = []
 
     #Read the EA articles json to a dictionary then objects
-    with open('c4h_scoreboard/ea_articles.json', 'r') as articles_json:
+    with open('C4HScore/ea_articles.json', 'r') as articles_json:
         ea_art_dict = json.load(articles_json)
 
     ea_art_dict = ea_art_dict['ea_articles']
@@ -355,3 +869,6 @@ if __name__ == "__main__":
         ea_articles.append(EAArticle(a))
 
     #now the event stuff
+
+
+

@@ -1,0 +1,194 @@
+--- # Event Details
+&id001 !!python/object:C4HScore.c4h_scoreboard.C4HEvent
+_arenas:
+- &id002 !!python/object:C4HScore.c4h_scoreboard.C4HArena
+  _id: Arena1
+  event: *id001
+_classes:
+- !!python/object:C4HScore.c4h_scoreboard.C4HJumpClass
+  _arena: *id002
+  _article: null
+  _cd: null
+  _combos:
+  - &id003 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id018 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Passing Wind
+    _id: '1'
+    _rider: &id033 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Hugh
+      _surname: Mungus
+  - &id004 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id019 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Feral Cheryl
+    _id: '2'
+    _rider: &id034 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Fred
+      _surname: Dagg
+  - &id005 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id020 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Hoof Footer
+    _id: '3'
+    _rider: &id035 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Ali
+      _surname: Gator
+  - &id006 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id021 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Topless
+    _id: '4'
+    _rider: &id036 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Andy
+      _surname: Gravity
+  - &id007 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id022 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Nadzoff
+    _id: '5'
+    _rider: &id037 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Anita
+      _surname: Bath
+  - &id008 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id023 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Pants on Fire
+    _id: '6'
+    _rider: &id038 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Ben
+      _surname: Down
+  - &id009 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id024 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Raw Prawn
+    _id: '7'
+    _rider: &id039 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Bernie
+      _surname: Zarzhoff
+  - &id010 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id025 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Sotally Tober
+    _id: '8'
+    _rider: &id040 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Terry
+      _surname: Zarzhoff
+  - &id011 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id026 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Buck Naked
+    _id: '9'
+    _rider: &id041 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Bluey
+      _surname: Zarzhoff
+  - &id012 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id027 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Hayrack
+    _id: '10'
+    _rider: &id042 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Bill
+      _surname: Board
+  _description: null
+  _height: null
+  _id: '1'
+  _judge: null
+  _name: null
+  _places: 6
+  _times: []
+- !!python/object:C4HScore.c4h_scoreboard.C4HJumpClass
+  _arena: *id002
+  _article: null
+  _cd: null
+  _combos:
+  - &id013 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id028 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Fugley
+    _id: '11'
+    _rider: &id043 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Krystal
+      _surname: Ball
+  - &id014 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id029 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Paycheck
+    _id: '12'
+    _rider: &id044 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Faye
+      _surname: Tallity
+  - &id015 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id030 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Broke but Happy
+    _id: '13'
+    _rider: &id045 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Justin
+      _surname: Case
+  - &id016 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id031 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: Bottoms Up
+    _id: '14'
+    _rider: &id046 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Xavier
+      _surname: Breath
+  - &id017 !!python/object:C4HScore.c4h_scoreboard.C4HCombo
+    _horse: &id032 !!python/object:C4HScore.c4h_scoreboard.C4HHorse
+      _name: She'll Do
+    _id: '15'
+    _rider: &id047 !!python/object:C4HScore.c4h_scoreboard.C4HRider
+      _given_name: Millie
+      _surname: Meeta
+  - *id003
+  - *id004
+  _description: null
+  _height: null
+  _id: '2'
+  _judge: null
+  _name: null
+  _places: 6
+  _times: []
+_combos:
+- *id003
+- *id004
+- *id005
+- *id006
+- *id007
+- *id008
+- *id009
+- *id010
+- *id011
+- *id012
+- *id013
+- *id014
+- *id015
+- *id016
+- *id017
+_details: ''
+_horses:
+- *id018
+- *id019
+- *id020
+- *id021
+- *id022
+- *id023
+- *id024
+- *id025
+- *id026
+- *id027
+- *id028
+- *id029
+- *id030
+- *id031
+- *id032
+_indent: '  '
+_name: New Event
+_riders:
+- *id033
+- *id034
+- *id035
+- *id036
+- *id037
+- *id038
+- *id039
+- *id040
+- *id041
+- *id042
+- *id043
+- *id044
+- *id045
+- *id046
+- *id047
+changed: true
+dates:
+- 2020-12-06
+- 2020-12-06
+filename: null

@@ -1,4 +1,5 @@
 import json
+import yaml
 
 articles = [
     ('238.2.2','Jump-off Competition','AM5'),
@@ -16,9 +17,13 @@ for a in articles:
     })
 
 #Write the object to file.
-fn = 'c4h_scoreboard/ea_articles.json'
+fn = 'C4HScore/ea_articles.json'
 with open(fn,'w') as outFile:
     json.dump(articles_json, outFile)
+
+fn = 'C4HScore/ea_articles_test.yaml'
+with open(fn,'w') as outFile:
+    yaml.dump(articles_json, outFile)
 
 
 
