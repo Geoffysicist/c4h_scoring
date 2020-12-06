@@ -7,13 +7,13 @@ def mock_event():
     mock_event = c4h.C4HEvent('Baccabuggry World Cup')
     arena1 = mock_event.get_arena('Arena1')
     arena2 = mock_event.new_arena('Arena2')
-    class1 = mock_event.new_class('Class1', arena=arena1)
-    mock_event.new_class('Class2', arena=arena2)
-    mock_event.new_class('Class3', arena=arena1)
-    mock_event.new_class('Class4', arena=arena1)
-    mock_event.new_class('Class5', arena=arena2)
+    class1 = arena1.new_class('Class1')
+    arena2.new_class('Class2')
+    arena1.new_class('Class3')
+    arena1.new_class('Class4')
+    arena2.new_class('Class5')
     # create a class that is not allocated to an arena
-    mock_event.new_class('Class6')
+    arena2.new_class('Class6')
     #create a test rider horse combination
     id = '1'
     horse = mock_event.new_horse(name='Pal')
@@ -38,17 +38,15 @@ def test_C4HEvent_get_arena(mock_event):
     assert type(mock_event.get_arena('Arena1')) == c4h.C4HArena
     assert mock_event.get_arena('Arena5') == None
 
-def test_C4HEvent_new_class(mock_event):
-    class9 = mock_event.new_class('Class9')
-    assert type(class9) == c4h.C4HJumpClass
-    
-    with pytest.raises(ValueError) as e:
-        mock_event.new_class('Class1')
-    assert str(e.value) == "Class with id Class1 already exists"
 
-def test_C4HEvent_get_class(mock_event):
-    assert type(mock_event.get_class('Class1')) == c4h.C4HJumpClass
-    assert mock_event.get_arena('Class9') == None
+def test_C4HArena_new_class(mock_event):
+    class9 = mock_event.arenas[0].new_class('Class9')
+    assert type(class9) == c4h.C4HJumpClass
+
+
+def test_C4HArena_get_class(mock_event):
+    assert type(mock_event.arenas[0].get_class('Class1')) == c4h.C4HJumpClass
+    assert mock_event.arenas[0].get_class('Class99') == False
 
 def test_C4HEvent_new_rider(mock_event):
     surname = "Zarzhoff"
@@ -127,14 +125,14 @@ def test_C4HJumpClass_get_combo(mock_event):
     assert that_combo is None
 
 
-def test_read_csv_nominate():
-    fn = 'tests/test_event_nominate.csv'
-    event = c4h.read_csv_nominate(fn)
-    assert len(event.classes) == 2
-    for jc in event.classes:
-        assert type(jc) == c4h.C4HJumpClass
-        for c in jc.combos:
-            assert type(c) == c4h.C4HCombo
-            assert type(c.rider) == c4h.C4HRider
-            assert type(c.horse) == c4h.C4HHorse
+# def test_read_csv_nominate():
+#     fn = 'tests/test_event_nominate.csv'
+#     event = c4h.read_csv_nominate(fn)
+#     assert len(event.classes) == 2
+#     for jc in event.classes:
+#         assert type(jc) == c4h.C4HJumpClass
+#         for c in jc.combos:
+#             assert type(c) == c4h.C4HCombo
+#             assert type(c.rider) == c4h.C4HRider
+#             assert type(c.horse) == c4h.C4HHorse
 
