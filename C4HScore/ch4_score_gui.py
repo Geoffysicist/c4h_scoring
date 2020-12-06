@@ -5,8 +5,6 @@ import ctypes
 
 from tkinter import ttk, filedialog, messagebox
 from datetime import date
-# from functools import partial
-# from ttkthemes import ThemedTk
 
 # makes dpi aware so tkinter text isnt blurry
 ctypes.windll.shcore.SetProcessDpiAwareness(1)

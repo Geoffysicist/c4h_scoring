@@ -186,7 +186,7 @@ class C4HEvent(object):
             C4HHorse
         '''
         for h in self.horses:
-            if h.get_name() == name:
+            if h.name == name:
                 raise ValueError(f"Horse {name} already exists")
 
         h = C4HHorse(name, ea_number=ea_number)
@@ -197,7 +197,7 @@ class C4HEvent(object):
         '''returns the C4HHorse matching name else None if horse doesn't exist.
         '''
         for h in self.horses:
-            if (h.get_name() == name):
+            if (h.name == name):
                 return h
 
         return None
@@ -406,7 +406,7 @@ def read_csv_nominate(fn, event_name='New Event'):
                 jumpclass = event.get_class(jumpclass)
 
             if not jumpclass.get_combo(combo):
-                jumpclass.add_combo(combo)
+                jumpclass.combos.append(combo)
 
     return event
 

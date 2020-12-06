@@ -1,5 +1,5 @@
 import pytest
-import C4HScore.c4h_scoreboard as c4h
+import C4HScore.c4h_score as c4h
 import yaml
 
 @pytest.fixture
@@ -19,22 +19,12 @@ def mock_event():
     horse = mock_event.new_horse(name='Pal')
     rider = mock_event.new_rider(given_name='Phil', surname='McCraken')
     combo1 = mock_event.new_combo(id, rider, horse)
-    class1.add_combo(combo1)
+    class1.combos.append(combo1)
     
     return mock_event
 
 # Event
 # -------------------------------------------------------------
-def test_C4HEvent_get_name(mock_event):
-    assert mock_event.get_name() == 'Baccabuggry World Cup'
-
-def test_C4HEvent_set_name(mock_event):
-    with pytest.raises(TypeError) as e:
-        mock_event.set_name(42)
-    assert str(e.value) == "event_name 42 is not a string"
-    
-    mock_event.set_name('Reg')
-    assert mock_event.get_name() == 'Reg'
 
 def test_C4HEvent_new_arena(mock_event):
     arena3 = mock_event.new_arena('Arena3')
@@ -43,9 +33,6 @@ def test_C4HEvent_new_arena(mock_event):
     with pytest.raises(ValueError) as e:
         mock_event.new_arena('Arena1')
     assert str(e.value) == "Arena with id Arena1 already exists"
-
-def test_C4HEvent_get_arenas(mock_event):
-    assert len(mock_event.get_arenas()) == 2
 
 def test_C4HEvent_get_arena(mock_event):
     assert type(mock_event.get_arena('Arena1')) == c4h.C4HArena
@@ -58,9 +45,6 @@ def test_C4HEvent_new_class(mock_event):
     with pytest.raises(ValueError) as e:
         mock_event.new_class('Class1')
     assert str(e.value) == "Class with id Class1 already exists"
-
-def test_C4HEvent_get_classes(mock_event):
-    assert len(mock_event.get_classes()) == 6
 
 def test_C4HEvent_get_class(mock_event):
     assert type(mock_event.get_class('Class1')) == c4h.C4HJumpClass
@@ -112,93 +96,45 @@ def test_C4HEvent_get_horse(mock_event):
     assert type(horse) == c4h.C4HHorse
 
 def test_C4HEvent_new_combo(mock_event):
-    initial_len_combo_list = len(mock_event.get_combos())
+    initial_len_combo_list = len(mock_event.combos)
     id = '2'
     horse = mock_event.new_horse('Topless')
     rider = mock_event.new_rider(('Gravity', 'Andy'))
     this_combo = mock_event.new_combo(id, rider, horse)
     assert type(this_combo) == c4h.C4HCombo
-    assert len(mock_event.get_combos()) - initial_len_combo_list == 1
+    assert len(mock_event.combos) - initial_len_combo_list == 1
 
 def test_C4HEvent_get_combo(mock_event):
     this_combo = mock_event.get_combo('1')
     assert type(this_combo) == c4h.C4HCombo
-    assert type(this_combo.get_rider()) == c4h.C4HRider
-    assert type(this_combo.get_horse()) == c4h.C4HHorse
+    assert type(this_combo.rider) == c4h.C4HRider
+    assert type(this_combo.horse) == c4h.C4HHorse
     that_combo = mock_event.get_combo('666')
     assert that_combo is None
-
-def test_C4HEvent_write_c4hs(mock_event):
-    mock_event.write_c4hs('test_output.c4hs')
-
-def test_C4HEvent_yaml_dump(mock_event):
-    mock_event.yaml_dump('test_output.c4hs')
 
 # Arena
 # -------------------------------------------------------------
 
-def test_C4HArena_get_classes(mock_event):
-    assert len(mock_event.get_arena('Arena1').get_classes()) == 4 #allocated to Arena1 by default
-    assert len(mock_event.get_arena('Arena2').get_classes()) == 2
-    assert type(mock_event.get_arena('Arena2').get_classes()[0]) == c4h.C4HJumpClass
 
 # JumpClass
 # -------------------------------------------------------------
-def test_C4HJumpClass_get_arena(mock_event):
-    these_classes = mock_event.get_classes()
-    arena1 = these_classes[0].get_arena()
-    
-    assert type(arena1) == c4h.C4HArena
-    assert arena1.get_id() == 'Arena1'
-
-def test_C4HJumpClass_set_arena(mock_event):
-    these_classes = mock_event.get_classes()
-    class1 = these_classes[0]
-    class1.set_arena(mock_event.get_arenas()[1])
-
-    assert class1.get_arena().get_id() == 'Arena2'
-    with pytest.raises(TypeError) as e:
-        class1.set_arena('Arena1')
-    assert str(e.value) == "Arg Arena1 is an object of type <class 'str'> should be type C4HArena"
-
-def test_C4HJumpClass_places(mock_event):
-    this_class = mock_event.get_classes()[0]
-    places = 6
-    this_class.set_places(places)
-    assert this_class.get_places() == places
-
 def test_C4HJumpClass_get_combo(mock_event):
     this_combo = mock_event.get_combo('1')
     assert type(this_combo) == c4h.C4HCombo
-    assert type(this_combo.get_rider()) == c4h.C4HRider
-    assert type(this_combo.get_horse()) == c4h.C4HHorse
+    assert type(this_combo.rider) == c4h.C4HRider
+    assert type(this_combo.horse) == c4h.C4HHorse
     that_combo = mock_event.get_combo('666')
     assert that_combo is None
-
-def test_C4HJumpClass_add_combo(mock_event):
-    this_class = mock_event.get_classes()[0]
-    num_in_class = len(this_class.get_combos())
-    this_class.add_combo(mock_event.get_combo('2'))
-    assert len(this_class.get_combos()) - num_in_class == 1
-
-    with pytest.raises(ValueError) as e:
-            this_class.add_combo(mock_event.get_combo('1'))
-    assert str(e.value) == "Combination 1 already in class"
 
 
 def test_read_csv_nominate():
     fn = 'tests/test_event_nominate.csv'
     event = c4h.read_csv_nominate(fn)
-    event.yaml_dump('test_output.c4hs')
-    assert len(event.get_classes()) == 2
-    for jc in event.get_classes():
+    assert len(event.classes) == 2
+    for jc in event.classes:
         assert type(jc) == c4h.C4HJumpClass
-        for c in jc.get_combos():
+        for c in jc.combos:
             assert type(c) == c4h.C4HCombo
-            assert type(c.get_rider()) == c4h.C4HRider
-            assert type(c.get_horse()) == c4h.C4HHorse
+            assert type(c.rider) == c4h.C4HRider
+            assert type(c.horse) == c4h.C4HHorse
 
-def test_load_yaml():
-    fn = 'test_output.c4hs'
-    event = c4h.load_yaml(fn)
-    assert type(event) == c4h.C4HEvent
