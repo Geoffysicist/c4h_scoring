@@ -390,8 +390,6 @@ class C4HEvent(object):
 
         return new_event
 
-
-
 class C4HArena(object):
     '''An arena in the event which holds classes.
 
@@ -609,23 +607,15 @@ class C4HScoreGUI(object):
 
         # the class menu
         self.classmenu = tk.Menu(self.menubar, tearoff=0)
-        self.classmenu.add_command(label="New", command=self.new_class)
-        self.classmenu.add_command(label="Open", command=self.open_class)
-        self.classmenu.add_command(label="Edit", command=self.edit_class)
+        self.classmenu.add_command(label="New", command=self.class_new)
+        self.classmenu.add_command(label="Open", command=self.class_open)
+        self.classmenu.add_command(label="Edit", command=self.class_edit)
+        self.menubar.add_cascade(label="Class", menu=self.classmenu)
 
 
         self._master.config(menu=self.menubar)
 
         self.update()
-    
-    
-    # eventmenu.add_command(label="Open", command=donothing)
-    # eventmenu.add_command(label="Save", command=donothing)
-
-
-    # helpmenu = Menu(menubar, tearoff=0)
-    # helpmenu.add_command(label="Help Index", command=donothing)
-    # helpmenu.add_command(label="About...", command=donothing)
 
     def update(self):
         print(type(self.event))
@@ -634,14 +624,22 @@ class C4HScoreGUI(object):
         if not self.event:
             self.eventmenu.entryconfig("Save", state="disabled")
             self.eventmenu.entryconfig("Save As", state="disabled")
+            self.eventmenu.entryconfig("Edit", state="disabled")
+            self.menubar.entryconfig("Class", state="disabled")
         else:    
             self.eventmenu.entryconfig("Save As", state="normal")
+            self.eventmenu.entryconfig("Edit", state="normal")
+            self.menubar.entryconfig("Class", state="normal")
         
             if self.event.changed and self.event.filename:
                 self.eventmenu.entryconfig("Save", state="normal")
             else:
                 self.eventmenu.entryconfig("Save", state="disabled")
 
+            if len(self.event._classes) == 0:
+                self.classmenu.entryconfig("Edit", state="disabled")
+            else:
+                self.classmenu.entryconfig("Edit", state="normal")
 
     def get_event(self):
         return self.event
@@ -743,9 +741,9 @@ class C4HScoreGUI(object):
 
             if save_changes == True:
                 if self.event.filename:
-                    self.file_save()
+                    self.event_save()
                 else:
-                    self.file_save_as()
+                    self.event_save_as()
             elif save_changes == None:
                 # cancelled so do nothing
                 return
@@ -765,6 +763,9 @@ class C4HScoreGUI(object):
             self.event.changed = False
 
             self.update()
+
+    def event_edit(self):
+        print('event edit stubb')
     
     def event_save(self):
         self.event.file_save()
@@ -782,11 +783,20 @@ class C4HScoreGUI(object):
         if fn:
             self.event.file_save_as(fn)
 
-    def file_print(self):
+    def event_print(self):
         if self.event:
             print(self.event.get_name())
         else:
             print(type(self.event))
+
+    def class_new(self):
+        print('class_new stub')
+
+    def class_open(self):
+        print('class_open stub')
+
+    def class_edit(self):
+        print('class_edit stub')
 
 # functions
 def new_event(name="New Event"):
