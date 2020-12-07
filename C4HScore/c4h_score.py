@@ -41,7 +41,7 @@ class C4HEvent(object):
         name (string): the event name
         filename (str): the name of the event file. None for unsaved events
         arenas (list): C4HArena objects
-        jumpclasses (list): C4HJumpClass objects
+        jumpclasses (list): C4HJumpClass objects - now arenas
         riders (list): C4HRider objects
         horses (list): C4HHorse objects
         combos (list): C4HCombos rider, horse, id
@@ -66,7 +66,6 @@ class C4HEvent(object):
 
         # add default arena
         self.new_arena('1','Arena 1')
-
 
     def new_arena(self, arena_id, name):
         '''creates a new arena and appends it to the arena list.
@@ -101,7 +100,6 @@ class C4HEvent(object):
                 return a
         
         return None        
-
 
     def new_rider(self, surname=None, given_name=None, ea_number=None):
         '''creates a new rider and appends it to the rider list.
@@ -251,9 +249,7 @@ class C4HArena(object):
 
         self._ID = next_id
 
-
-
-    def new_class(self, class_id):
+    def new_jumpclass(self):
         '''creates a new jumpclass if it doesn't exist.
 
         checks to see if a class with name class_id exists
@@ -267,14 +263,10 @@ class C4HArena(object):
             ValueError: if a class with that class_id already exists
         '''
 
-        for a in self.event.arenas:
-            for j in a.jumpclasses:
-                if j.id == class_id:
-                    raise ValueError('Class with id {} already exists'.format(class_id))
-
-        j = C4HJumpClass(class_id, self)
+        j = C4HJumpClass(self)
         self.jumpclasses.append(j)
         return j
+
 
     def get_class(self, class_id):
         '''returns the class with class_id.
@@ -310,19 +302,27 @@ class C4HJumpClass(object):
         combinations (list): list of the horse/rider combinations entered
     '''
 
-    def __init__(self, class_id, arena, places=6):
-        self.id = class_id
+    def __init__(self, arena):
+
+        #getunique ID
+        self._ID = 1
+        for jc in arena.jumpclasses:
+            if self._ID <= jc._ID:
+                self._ID = jc._ID + 1
+        self.id = self._ID
+        self.arena = arena
         self.name = f'Class {self.id}'
         self.article = None
-        self.arena = arena
         self.description = None
         self.height = None
         self.times = []
         self.judge = None
         self.cd = None
-        self.places = places
+        self.places = 6
         self.combos = []
         self.rounds= []
+
+        arena.jumpclasses.append(self)
 
     def get_combo(self, id):
         '''returns the C4HCombo with id == id else None if it doesn't exist.

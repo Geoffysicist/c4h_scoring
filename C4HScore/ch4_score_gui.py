@@ -9,7 +9,7 @@ from datetime import date
 # makes dpi aware so tkinter text isnt blurry
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
-class C4HScoreGUI(object):
+class C4HScoreGUI(ttk.Notebook):
     #TODO change this to a ttk.Notebook object
     ''' Big container for the rest of the stuff.
 
@@ -19,6 +19,7 @@ class C4HScoreGUI(object):
     def __init__(self, master):
         ''' creates the master window and sets the main menubar.
         '''
+        super().__init__(master)
         self.event = None
 
         # set up the gui
@@ -28,8 +29,9 @@ class C4HScoreGUI(object):
         self.favicon = tk.PhotoImage(file='assets/courses4horses_logo_bare.png')
         self.master.iconphoto(False, self.favicon)
         self.master.geometry('1600x1200')
-        self.mainframe = ttk.Notebook(self.master)
-        self.mainframe.grid(row=0, column=0, sticky="NSEW")
+        # self.mainframe = ttk.Notebook(self.master)
+        # self.mainframe.grid(row=0, column=0, sticky="NSEW")
+        self.grid(row=0, column=0, sticky="NSEW")
         self.master.grid_rowconfigure(0, weight=1)
         self.master.grid_columnconfigure(0, weight=1)
         
@@ -147,7 +149,8 @@ class C4HScoreGUI(object):
             self.update()
 
     def event_edit(self):
-        C4HEventDialog(self.master, self.event)
+        # C4HEventDialog(self.master, self.event)
+        C4HEventDialog(self)
 
     def event_save(self):
         self.event.event_save()
@@ -174,7 +177,12 @@ class C4HScoreGUI(object):
             print(type(self.event))
 
     def jumpclass_new(self):
-        print('class_new stub')
+        # need to ensure a unique ID
+        jumpclass = self.event.arenas[0].new_jumpclass()
+        jc_tab = C4HJumpClassTab(self, jumpclass)
+        self.add(jc_tab, text=jumpclass.name)
+        
+
 
     def jumpclass_open(self):
         print('class_open stub')
@@ -190,13 +198,12 @@ class C4HEventDialog(tk.Toplevel):
         arenas (list of C4HArenas):
 
     '''
-
-    def __init__(self, master, event):
+    def __init__(self, master):
         super().__init__(master)
         self.master = master
-        self.event = event
+        self.event = master.event
         self.title(f'{self.master.title}: {self.event.name}')
-        # self.iconphoto(False, self.master.favicon)
+        self.iconphoto(False, self.master.favicon)
 
         self.event_name = tk.StringVar(self,f"{self.event.name}")
         self.arenas = []
@@ -314,8 +321,46 @@ class C4HEventDialog(tk.Toplevel):
             print(a._ID, a.id)
         
         self.event.changed = True
+        self.master.update()
         self.destroy()
-        self.update()
+        # self.update()
+
+class C4HJumpClassTab(ttk.Frame):
+    '''Frame for holding jump class details.
+    '''
+
+    def __init__(self, master, jumpclass):
+        ''' Inits the jump class.
+
+        jumpclass (C4HJumpClass)
+        '''
+        super().__init__(master)
+        self.jumpclass = jumpclass
+
+        # set up all the tk string variables
+        self.jc_name = tk.StringVar(self, f'{self.jumpclass.name}')
+        self.jc_id = tk.StringVar(self, f'{self.jumpclass.id}')
+        self.arena_id = tk.StringVar(self, f'{self.jumpclass.arena.id}')
+
+        arena_ids = []
+        for a in master.event.arenas:
+            arena_ids.append(a.id)
+
+        jc_id_lbl = ttk.Label(self, text='Class ID: ')
+        jc_id_entry = ttk.Entry(self, textvariable=self.jc_id)
+        jc_name_lbl = ttk.Label(self, text='Class Name: ')
+        jc_name_entry = ttk.Entry(self, textvariable=self.jc_name)
+        arena_id_lbl = ttk.Label(self, text='Arena ID: ')
+        arena_id_entry = ttk.Combobox(self,
+            textvariable=self.arena_id, values=arena_ids)
+        
+        # grid it up
+        jc_id_lbl.grid(row=1, column=1)
+        jc_id_entry.grid(row=1, column=2)
+        arena_id_entry.grid(row=1, column=4)
+        arena_id_lbl.grid(row=1, column=3)
+        jc_name_lbl.grid(row=2, column=1)
+        jc_name_entry.grid(row=2, column=2, columnspan=3, sticky='EW')
 
 
 
