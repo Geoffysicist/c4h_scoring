@@ -10,6 +10,7 @@ from datetime import date
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 class C4HScoreGUI(object):
+    #TODO change this to a ttk.Notebook object
     ''' Big container for the rest of the stuff.
 
     Attributes:
@@ -104,128 +105,8 @@ class C4HScoreGUI(object):
                     # cancelled so do nothing
                     return
 
-        # TODO call
         self.event = C4HEvent('New Event')
         self.event_edit()
-
-
-        # dlg = tk.Toplevel(self.master)
-        # event_name = tk.StringVar(dlg,'New Event')
-        # arenas = [[tk.StringVar(dlg,'1'), tk.StringVar(dlg,f'Arena 1')]]
-
-
-        # # dlg.transient(self.master)
-        # # dlg.geometry('1600x1200')
-        # dlg.title(f'{self.title} - {event_name.get()}')
-        # dlg.iconphoto(False, self.favicon)
-
-        # event_lbl = ttk.Label(dlg, text='Event Name: ')
-        # event_name_entry = ttk.Entry(dlg, textvariable=event_name)
-
-        # start_lbl = ttk.Label(dlg, text='Start Date: ')
-        # start_picker = cal.DateEntry(dlg, date=date.today(), locale='en_AU')
-        # end_lbl = ttk.Label(dlg, text='End Date: ')
-        # end_picker = cal.DateEntry(dlg, date=start_picker.get_date(), 
-        #     mindate=start_picker.get_date(), locale='en_AU')
-        
-        # # we need a local function to check start_date < end_date
-        # def check_dates(eventObject):
-        #     if start_picker.get_date() > end_picker.get_date():
-        #         end_picker.set_date(start_picker.get_date())
-        #         end_picker.configure(mindate=start_picker.get_date())
- 
-        # # local function to set event with local variables
-        # def set_event():
-        #     self.event = C4HEvent(event_name.get())
-        #     self.event.dates = [start_picker.get_date(),end_picker.get_date()]
-
-        #     print(self.event.dates)
-        #     print(self.event.name)
-        #     dlg.destroy()
-        #     self.update()
-
-        # def arena_frame_update():
-        #     # clear the frame
-        #     for w in arena_frame.winfo_children():
-        #         w.destroy
-            
-        #     # now update it
-        #     for i, val in enumerate(arenas, 2): #first entry box on the 2nd row
-        #         ttk.Entry(arena_frame, textvariable=val[0]).grid(row=i, column=1)
-        #         ttk.Entry(arena_frame, textvariable=val[1]).grid(row=i, column=2)
-
-
-        # #local function to add new arena lines to the dialog
-        # def arena_add():
-        #     id = len(arenas)+1
-        #     arenas.append([tk.StringVar(dlg,id), tk.StringVar(dlg, f'Arena {id}')])
-        #     arena_frame_update()
-
-        
-
-        # start_picker.bind('<<DateEntrySelected>>', check_dates)
-        # end_picker.bind('<<DateEntrySelected>>', check_dates)
-
-        # done_btn = ttk.Button(dlg, text='Done', default='active', command=set_event)
-        # cancel_btn = ttk.Button(dlg, text='Cancel', command=dlg.destroy)
-
-        # # one frame to rule the arenas
-        # arena_frame = ttk.Frame(dlg)
-        # arena_lbl = ttk.Label(dlg, text='Arenas')
-        # arena_id_lbl = ttk.Label(arena_frame, text='ID')
-        # arena_name_lbl = ttk.Label(arena_frame, text='Name')
-            
-
-        
-        # add_arena_btn = ttk.Button(dlg, text='Add arena', default='active', command=arena_add)
-        # # edit_arena_btn = ttk.Button(dlg, text='Edit class', default='disabled')
-        # del_arena_btn = ttk.Button(dlg, text='Delete arena', default='disabled')
-
-        # # grid it up, Baby!
-        # event_lbl.grid(column=1, row=1, sticky='E')
-        # event_name_entry.grid(column=2, row=1, sticky='EW',columnspan=3)
-        # start_lbl.grid(column=1, row=2, sticky='E')
-        # start_picker.grid(column=2, row=2)
-        # end_lbl.grid(column=3, row=2, sticky='E')
-        # end_picker.grid(column=4, row=2)
-
-        # ttk.Separator(dlg, orient='horizontal').grid(column=1, row=3, sticky='EW', columnspan=4)
-
-        # arena_lbl.grid(column=1, row=4)
-        # add_arena_btn.grid(column=1, row=5)
-        # # edit_arena_btn.grid(column=1, row=6)
-        # del_arena_btn.grid(column=1, row=7)
-
-        # arena_frame.grid(column=2, row=4, sticky='NSEW', columnspan=3, rowspan=4)
-        # arena_frame_update() # this needs to be dynamic
-
-        # ttk.Separator(dlg, orient='horizontal').grid(column=1, row=8, sticky='EW', columnspan=4)
-        
-        # done_btn.grid(column=2, row=9)
-        # cancel_btn.grid(column=3, row=9)
-
-        # # add some nice padding all round
-        # for c in dlg.winfo_children():
-        #     c.grid_configure(padx=10, pady=10)
-        # start_lbl.grid_configure(padx=(100,10))
-        # end_picker.grid_configure(padx=(10,100))
-        
-        # # grid the arenaframe children
-        # arena_id_lbl.grid(column=1, row=1)
-        # arena_name_lbl.grid(column=2, row=1, sticky='W')
-        # arena_frame.grid_columnconfigure(1, weight=1)
-        # arena_frame.grid_columnconfigure(2, weight=3)
- 
-
-        # # for c in arena_frame.winfo_children():
-        # #     c.grid_configure(padx=10, pady=10)
-
-        # # jumpclass_name_lbl.grid_configure(padx=(50,10))
-        # event_name_entry.focus()
-        # event_name_entry.select_range(0,len(event_name.get()))
-
-        # dlg.wait_visibility() # cant grab until visible
-        # dlg.grab_set() # keeps focus on this dialog
 
     def event_open(self):
         '''Opens an existing event from a c4hs file.
@@ -266,7 +147,8 @@ class C4HScoreGUI(object):
             self.update()
 
     def event_edit(self):
-        C4HEventDialog(self.master, self.event)    
+        C4HEventDialog(self.master, self.event)
+
     def event_save(self):
         self.event.event_save()
 
@@ -430,21 +312,13 @@ class C4HEventDialog(tk.Toplevel):
         print(self.event.name)
         for a in self.event.arenas:
             print(a._ID, a.id)
+        
+        self.event.changed = True
         self.destroy()
         self.update()
 
 
-# class C4HEntry(ttk.Entry):
-#     ''' Modified ttk.Entry widget with unique id for tracking.
-#     '''
-#     def __init__(self, master, textvar, id):
-#         '''
-#         Args:
-#             master: the master window
-#             textvar: the textvariable for the entry
-#             id (int): tracking id
-#         '''
-#         super().__init__(master, textvariable=textvar)
+
 
 
         
