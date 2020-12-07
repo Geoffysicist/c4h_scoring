@@ -65,14 +65,15 @@ class C4HEvent(object):
         self.changed = True
 
         # add default arena
-        self.new_arena('Arena1')
+        self.new_arena('1','Arena 1')
 
 
-    def new_arena(self, arena_id):
+    def new_arena(self, arena_id, name):
         '''creates a new arena and appends it to the arena list.
 
         Args:
             arena_id (string): the name of the arena to check/create
+            name (string):
 
         Returns:
             C4HArena
@@ -81,27 +82,25 @@ class C4HEvent(object):
             if a.id == arena_id:
                 raise ValueError(f"Arena with id {arena_id} already exists")
 
-        a = C4HArena(arena_id, self)
+        a = C4HArena(arena_id, name, self)
+
         self.arenas.append(a)
         return a
 
-    def get_arena(self, arena_id):
-        '''returns the arena with arena_id.
+    def get_arena(self, arena_ID):
+        '''returns the arena with unique private arena _ID.
 
         Args:
-            arena_id (string): the name of the arena to find
+            arena_ID (int):
 
         Returns:
             C4HArena or None if not found
         '''
-
-        this_arena = None
-        
         for a in self.arenas:
-            if a.id == arena_id:
-                this_arena = a
+            if a._ID == arena_ID:
+                return a
         
-        return this_arena        
+        return None        
 
 
     def new_rider(self, surname=None, given_name=None, ea_number=None):
@@ -216,22 +215,41 @@ class C4HEvent(object):
             print(type(new_event))
 
         return new_event
+    
+    def get_jumpclasses(self):
+        '''
+        Returns:
+            list of C4HJumpClass objects
+        '''
+        jclasses = []
+        for a in self.arenas:
+            for j in a.jumpclasses:
+                jclasses.append(j)
+        
+        return jclasses
 
 class C4HArena(object):
     '''An arena in the event which holds jumpclasses.
 
     Attributes:
-        id (int):
+        _ID (int): private id
+        id (str): public id
         name (string):
         event (C4HEvent): parent event
         jumpclasses (list):
     '''
 
-    def __init__(self, arena_id, event):
-        self.id = arena_id
-        self.name = f'Arena {self.id}'
+    def __init__(self, arena_id, name, event):
+        self.name = name
         self.event = event
         self.jumpclasses = []
+        self.id = arena_id
+        next_id = 1
+        for a in self.event.arenas:
+            if a._ID >= next_id:
+                next_id = next_id + 1
+
+        self._ID = next_id
 
 
 

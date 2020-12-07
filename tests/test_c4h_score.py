@@ -5,8 +5,8 @@ import yaml
 @pytest.fixture
 def mock_event():
     mock_event = c4h.C4HEvent('Baccabuggry World Cup')
-    arena1 = mock_event.get_arena('Arena1')
-    arena2 = mock_event.new_arena('Arena2')
+    arena1 = mock_event.get_arena(1)
+    arena2 = mock_event.new_arena('2','Arena2')
     class1 = arena1.new_class('Class1')
     arena2.new_class('Class2')
     arena1.new_class('Class3')
@@ -27,26 +27,16 @@ def mock_event():
 # -------------------------------------------------------------
 
 def test_C4HEvent_new_arena(mock_event):
-    arena3 = mock_event.new_arena('Arena3')
+    arena3 = mock_event.new_arena('3','Arena3')
     assert type(arena3) == c4h.C4HArena
     
     with pytest.raises(ValueError) as e:
-        mock_event.new_arena('Arena1')
-    assert str(e.value) == "Arena with id Arena1 already exists"
+        mock_event.new_arena('1','Arena1')
+    assert str(e.value) == "Arena with id 1 already exists"
 
 def test_C4HEvent_get_arena(mock_event):
-    assert type(mock_event.get_arena('Arena1')) == c4h.C4HArena
-    assert mock_event.get_arena('Arena5') == None
-
-
-def test_C4HArena_new_class(mock_event):
-    class9 = mock_event.arenas[0].new_class('Class9')
-    assert type(class9) == c4h.C4HJumpClass
-
-
-def test_C4HArena_get_class(mock_event):
-    assert type(mock_event.arenas[0].get_class('Class1')) == c4h.C4HJumpClass
-    assert mock_event.arenas[0].get_class('Class99') == False
+    assert type(mock_event.get_arena(1)) == c4h.C4HArena
+    assert mock_event.get_arena(999) == None
 
 def test_C4HEvent_new_rider(mock_event):
     surname = "Zarzhoff"
@@ -110,8 +100,21 @@ def test_C4HEvent_get_combo(mock_event):
     that_combo = mock_event.get_combo('666')
     assert that_combo is None
 
+def test_C4HEvent_get_jumpclasses(mock_event):
+    assert len(mock_event.get_jumpclasses()) == 6
+    new_event = c4h.C4HEvent('new event')
+    assert len(new_event.get_jumpclasses()) == 0
+
+
 # Arena
 # -------------------------------------------------------------
+def test_C4HArena_new_class(mock_event):
+    class9 = mock_event.arenas[0].new_class('Class9')
+    assert type(class9) == c4h.C4HJumpClass
+
+def test_C4HArena_get_class(mock_event):
+    assert type(mock_event.arenas[0].get_class('Class1')) == c4h.C4HJumpClass
+    assert mock_event.arenas[0].get_class('Class99') == False
 
 
 # JumpClass
