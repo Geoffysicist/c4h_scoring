@@ -48,7 +48,7 @@ class C4HScoreGUI(ttk.Notebook):
         self.eventmenu.add_separator()
         self.eventmenu.add_command(label="Print", command=self.event_print)
         self.eventmenu.add_separator()
-        self.eventmenu.add_command(label="Exit", command=self.master.quit)   
+        self.eventmenu.add_command(label="Exit", command=self.event_exit)   
         self.menubar.add_cascade(label="Event", menu=self.eventmenu)
 
         # the class menu
@@ -75,7 +75,7 @@ class C4HScoreGUI(ttk.Notebook):
             self.eventmenu.entryconfig("Edit", state="normal")
             self.menubar.entryconfig("Class", state="normal")
         
-            if self.event.changed and self.event.filename:
+            if (self.event.last_change > self.event.last_save) and self.event.filename:
                 self.eventmenu.entryconfig("Save", state="normal")
             else:
                 self.eventmenu.entryconfig("Save", state="disabled")
@@ -88,24 +88,7 @@ class C4HScoreGUI(ttk.Notebook):
     def event_new(self):
         ''' Opens a new event dialog.
         '''
-
-        # warn if event has changed and not been saved
-        if self.event:
-            if self.event.changed:
-                save_changes = messagebox.askyesnocancel(
-                    title="Are you sure you aren't making a big mistake?", 
-                    message=
-                        'WARNING: You have unsaved changes! Do you want to save them?'
-                    )
-
-                if save_changes == True:
-                    if self.event.filename:
-                        self.event_save()
-                    else:
-                        self.event_save_as()
-                elif save_changes == None:
-                    # cancelled so do nothing
-                    return
+        if self.event_check_saved() == 'cancelled': return
 
         self.event = C4HEvent('New Event')
         self.event_edit()
@@ -116,21 +99,7 @@ class C4HScoreGUI(ttk.Notebook):
         Uses a filedialog to get filename and passes this to C4HEvent.open()
         Warns user if unsaved data
         '''
-        if self.event and self.event.changed:
-            save_changes = messagebox.askyesnocancel(
-                title="Are you sure you aren't making a big mistake?", 
-                message=
-                    'WARNING: You have unsaved changes! Do you want to save them?'
-                )
-
-            if save_changes == True:
-                if self.event.filename:
-                    self.event_save()
-                else:
-                    self.event_save_as()
-            elif save_changes == None:
-                # cancelled so do nothing
-                return
+        if self.event_check_saved() == 'cancelled': return
 
         fn = filedialog.askopenfilename(
             title="Select file to open",
@@ -138,13 +107,11 @@ class C4HScoreGUI(ttk.Notebook):
 
         #if cancel button wasn't clicked
         if fn:
-            print(f'the filename is {fn}')
             # if no event yet need to create one
             if not self.event:
                 self.event = C4HEvent('Temp Event')
             
             self.event = self.event.event_open(fn)
-            self.event.changed = False
 
             self.update()
 
@@ -175,6 +142,35 @@ class C4HScoreGUI(ttk.Notebook):
             print(self.event.name)
         else:
             print(type(self.event))
+
+    def event_exit(self):
+        if self.event_check_saved() == 'cancelled': return
+
+        self.master.quit()
+
+    def event_check_saved(self):
+        '''Checks whether data have been saved since last change.
+
+        Warns is not saved and prompts to save.
+        '''
+        if self.event:
+            if self.event.last_change > self.event.last_save:
+                save_changes = messagebox.askyesnocancel(
+                    title="Are you sure you aren't making a big mistake?", 
+                    message=
+                        'WARNING: You have unsaved changes! Do you want to save them?'
+                    )
+
+                if save_changes == True:
+                    if self.event.filename:
+                        self.event_save()
+                    else:
+                        self.event_save_as()
+                elif save_changes == None:
+                    # cancelled so do nothing
+                    return 'cancelled'
+
+
 
     def jumpclass_new(self):
         # need to ensure a unique ID
@@ -215,10 +211,11 @@ class C4HEventDialog(tk.Toplevel):
         event_name_entry = ttk.Entry(self, textvariable=self.event_name)
 
         start_lbl = ttk.Label(self, text='Start Date: ')
-        self.start_picker = cal.DateEntry(self, date=self.event.dates[0], locale='en_AU')
+        self.start_picker = cal.DateEntry(self, locale='en_AU')
+        self.start_picker.set_date(self.event.dates[0])
         end_lbl = ttk.Label(self, text='End Date: ')
-        self.end_picker = cal.DateEntry(self, date=self.event.dates[0], locale='en_AU')
-
+        self.end_picker = cal.DateEntry(self, locale='en_AU')
+        self.end_picker.set_date(self.event.dates[1])
         self.start_picker.bind('<<DateEntrySelected>>', self.check_dates)
         self.end_picker.bind('<<DateEntrySelected>>', self.check_dates)
 
@@ -281,7 +278,7 @@ class C4HEventDialog(tk.Toplevel):
         self.grab_set() # keeps focus on this dialog
 
 
-    def check_dates(self):
+    def check_dates(self, event):
         '''Ensures that the end date >= start date.
         '''
         if self.start_picker.get_date() > self.end_picker.get_date():
@@ -315,15 +312,9 @@ class C4HEventDialog(tk.Toplevel):
             else:
                 self.event.new_arena(a[1].get(), a[2].get())
 
-        print(self.event.dates)
-        print(self.event.name)
-        for a in self.event.arenas:
-            print(a._ID, a.id)
-        
-        self.event.changed = True
+        self.event.update()
         self.master.update()
         self.destroy()
-        # self.update()
 
 class C4HJumpClassTab(ttk.Frame):
     '''Frame for holding jump class details.

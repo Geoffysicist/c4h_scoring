@@ -1,5 +1,6 @@
-import c4h_scoreboard as c4h
+import c4h_score as c4h
 import yaml
+from datetime import datetime, timezone
 
 def test_event():
     event = c4h.C4HEvent("Great Event")
@@ -18,6 +19,6 @@ def test_articles():
         print(f'{a} {b}\n')
 
 if __name__ == "__main__":
-    event = c4h.C4HEvent('hello')
-    print(type(event))
+    event = datetime(1984,4,4, 13, tzinfo=timezone.utc)
+    print(type(event), event)
     

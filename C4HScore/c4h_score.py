@@ -16,7 +16,7 @@ import json
 import yaml
 import csv
 
-from datetime import date
+from datetime import date, datetime, timezone
 
 class EAArticle(object):
     '''EA/FEI article.
@@ -48,7 +48,10 @@ class C4HEvent(object):
         details (string): other information about the event
         dates (list): list of dates for the event
         indent (string): indent to use in yaml like output files. Default is 2 spaces
-        changed (bool): indicates whether the event has been changed since last save
+        # changed (bool): indicates whether the event has been changed since last save
+        last_save (datetime): UTC date & time the event was last saved
+        last_change (datetime): UTC date and time of last change in any data
+        # timezone (timeezone): best to leave as UTC if storing on servers etc
     '''
 
     def __init__(self, event_name):
@@ -62,10 +65,17 @@ class C4HEvent(object):
         self.details = ''
         self.dates = [date.today(),date.today()]
         self.indent = '  '
-        self.changed = True
+        # self.timezone = timezone.utc
+        self.last_save = datetime(1984,4,4, 13, tzinfo=timezone.utc)
+        self.last_change = datetime.now(timezone.utc)
+        # self.changed = True
 
         # add default arena
         self.new_arena('1','Arena 1')
+
+    def update(self):
+        self.last_change = datetime.now(timezone.utc)
+
 
     def new_arena(self, arena_id, name):
         '''creates a new arena and appends it to the arena list.
@@ -84,6 +94,8 @@ class C4HEvent(object):
         a = C4HArena(arena_id, name, self)
 
         self.arenas.append(a)
+        self.update()
+
         return a
 
     def get_arena(self, arena_ID):
@@ -122,6 +134,8 @@ class C4HEvent(object):
 
         r = C4HRider(surname=surname, given_name=given_name, ea_number=ea_number)
         self.riders.append(r)
+        self.update()
+
         return r
       
     def get_rider(self, surname, given_name):
@@ -149,6 +163,8 @@ class C4HEvent(object):
 
         h = C4HHorse(name, ea_number=ea_number)
         self.horses.append(h)
+        self.update()
+
         return h
 
     def get_horse(self, name):
@@ -177,6 +193,7 @@ class C4HEvent(object):
 
         c = C4HCombo(id, rider, horse)
         self.combos.append(c)
+        self.update()
         return c
 
     def get_combo(self, id):
@@ -188,19 +205,16 @@ class C4HEvent(object):
         return None
 
     def event_save(self):
+        # timestamp first so timestamp gets saved
+        self.last_save = datetime.now(timezone.utc)
+
         with open(self.filename, 'w') as out_file:
             out_file.write('--- # C4H Event Details\n')
             yaml.dump(self, out_file)
 
-        self.changed = False
-
-    def event_save_as(self, fn):
-        with open(fn, 'w') as out_file:
-            out_file.write('--- # C4H Event Details\n')
-            yaml.dump(self, out_file)
-        
+    def event_save_as(self, fn):       
         self.filename = fn
-        self.changed = False
+        self.event_save()
 
     def event_open(self, fn):
         ''' Creates an event from a c4hs yaml file.
