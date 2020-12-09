@@ -1,0 +1,34 @@
+--- # C4H Articles
+- !!python/object:c4h_score.C4HArticle
+  alt_name: null
+  description: ''
+  id: 100
+  jo_combinations: ''
+  jo_jumps: ''
+  jo_num: 0
+  jo_table: ''
+  round_against_clock: true
+  round_combinations: allowed
+  round_num: 1
+  round_table: A
+  rules: EA
+  sub_articles: []
+- !!python/object:c4h_score.C4HArticle
+  alt_name: null
+  description: ''
+  id: 200
+  jo_combinations: ''
+  jo_jumps: ''
+  jo_num: 0
+  jo_table: ''
+  round_against_clock: true
+  round_combinations: allowed
+  round_num: 1
+  round_table: A
+  rules: EA
+  sub_articles:
+  - id: .1.2
+    name: sub_art1
+  - id: .1.2
+    name: sub_art2
+    table: C

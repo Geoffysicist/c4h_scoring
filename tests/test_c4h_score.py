@@ -8,12 +8,12 @@ def mock_event():
     arena1 = mock_event.get_arena(1)
     arena2 = mock_event.new_arena('2','Arena2')
     class1 = arena1.new_class('Class1')
-    arena2.new_class('Class2')
-    arena1.new_class('Class3')
-    arena1.new_class('Class4')
-    arena2.new_class('Class5')
+    arena2.new_jumpclass('Class2')
+    arena1.new_jumpclass('Class3')
+    arena1.new_jumpclass('Class4')
+    arena2.new_jumpclass('Class5')
     # create a class that is not allocated to an arena
-    arena2.new_class('Class6')
+    arena2.new_jumpclass('Class6')
     #create a test rider horse combination
     id = '1'
     horse = mock_event.new_horse(name='Pal')
@@ -126,6 +126,19 @@ def test_C4HJumpClass_get_combo(mock_event):
     assert type(this_combo.horse) == c4h.C4HHorse
     that_combo = mock_event.get_combo('666')
     assert that_combo is None
+
+# Article
+# -------------------------------------------------------------
+def test_C4HArticle_init():
+    this_article=c4h.C4HArticle('238.2.2')
+    this_article.sub_articles.append({
+        'id': f'{this_article.id}/245.3',
+        'description': 'Immediate Jumpoff',
+        'alt_name': 'AM7'
+    })
+    assert type(this_article) == c4h.C4HArticle
+
+
 
 
 # def test_read_csv_nominate():

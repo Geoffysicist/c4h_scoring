@@ -1,15 +1,6 @@
-"""c4h_scoreboard - A scoreboard for judging showjumping.
+"""c4h_score - A scoreboard for judging showjumping.
 
-Leave one blank line.  The rest of this docstring should contain an
-overall description of the module or program.  Optionally, it may also
-contain a brief description of exported jumpclasses and functions and/or usage
-examples.
 
-  Typical usage example:
-
-  foo = SampleClass()
-  
-  bar = foo.public_method(required_variable, optional_variable=42)
 """
 
 import json
@@ -18,21 +9,40 @@ import csv
 
 from datetime import date, datetime, timezone
 
-class EAArticle(object):
+class C4HArticle(object):
     '''EA/FEI article.
 
     Attributes:
+        id (string): Article number
+        descrption (string): Short description of the class type
+        alt_name (string): Alternative name for the class
+        round_num (int): Number of rounds.
+        round_table (string): Table for the round.
+
         identifier (string): the paragraph.subparagraph number string
         description (string): word description of the competition
         alt_name: the deprecated silly names that everyone still uses
     '''
 
-    def __init__(self, article_dict):
+    def __init__(self, id):
         '''init the article with a dictionary of the id, description and old name.
         '''
-        self.id = article_dict['id']
-        self.description = article_dict['description']
-        self.alt_name = article_dict['alt_name']
+        self.rules = 'EA'
+        self.id = id
+        self.description = ''
+        self.alt_name = None
+        self.round_num = 1
+        self.round_table = 'A'
+        self.round_against_clock = True
+        self.round_combinations = 'allowed'
+        self.jo_num = 0
+        self.jo_table = ''
+        self.jo_jumps = ''
+        self.jo_combinations = ''
+        self.sub_articles = []
+
+
+
 
 class C4HEvent(object):
     '''Equestrian Event.
@@ -282,7 +292,7 @@ class C4HArena(object):
         return j
 
 
-    def get_class(self, class_id):
+    def get_jumpclass(self, class_id):
         '''returns the class with class_id.
 
         Args:
@@ -468,17 +478,7 @@ class C4HRound(object):
 #     return event
 
 if __name__ == "__main__":
-    ea_articles = []
-
-    #Read the EA articles json to a dictionary then objects
-    with open('C4HScore/ea_articles.json', 'r') as articles_json:
-        ea_art_dict = json.load(articles_json)
-
-    ea_art_dict = ea_art_dict['ea_articles']
-
-    for a in ea_art_dict:
-        ea_articles.append(EAArticle(a))
-
+    pass
     #now the event stuff
 
 

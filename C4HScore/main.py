@@ -1,9 +1,9 @@
+"""c4h_score - A scoreboard for judging showjumping.
+
+"""
+
 from ttkthemes import ThemedTk
 import ch4_score_gui as gui
-
-
-def donothing():
-    pass
 
 
 if __name__ == "__main__":

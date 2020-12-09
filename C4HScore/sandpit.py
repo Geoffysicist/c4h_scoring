@@ -19,6 +19,18 @@ def test_articles():
         print(f'{a} {b}\n')
 
 if __name__ == "__main__":
-    event = datetime(1984,4,4, 13, tzinfo=timezone.utc)
-    print(type(event), event)
+
+    fn = "test.c4ha"
+    articles = []
+    articles.append(c4h.C4HArticle(100))
+    articles.append(c4h.C4HArticle(200))
+    sub_art1 = {'id': '.1.2', 'name': 'sub_art1'}
+    sub_art2 = {'id': '.1.2', 'name': 'sub_art2', 'table': 'C'}
+    articles[1].sub_articles.append(sub_art1)
+    articles[1].sub_articles.append(sub_art2)
+    
+    with open(fn, 'w') as out_file:
+        out_file.write('--- # C4H Articles\n')
+        yaml.dump(articles, out_file)
+
     
