@@ -1,8 +1,8 @@
 --- # C4H Articles
 - !!python/object:c4h_score.C4HArticle
+  _id: 100
   alt_name: null
   description: ''
-  id: 100
   jo_combinations: ''
   jo_jumps: ''
   jo_num: 0
@@ -14,9 +14,9 @@
   rules: EA
   sub_articles: []
 - !!python/object:c4h_score.C4HArticle
+  _id: 101
   alt_name: null
   description: ''
-  id: 200
   jo_combinations: ''
   jo_jumps: ''
   jo_num: 0

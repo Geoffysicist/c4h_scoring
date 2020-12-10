@@ -7,13 +7,13 @@ def mock_event():
     mock_event = c4h.C4HEvent('Baccabuggry World Cup')
     arena1 = mock_event.get_arena(1)
     arena2 = mock_event.new_arena('2','Arena2')
-    class1 = arena1.new_class('Class1')
-    arena2.new_jumpclass('Class2')
-    arena1.new_jumpclass('Class3')
-    arena1.new_jumpclass('Class4')
-    arena2.new_jumpclass('Class5')
+    class1 = arena1.new_jumpclass()
+    arena2.new_jumpclass()
+    arena1.new_jumpclass()
+    arena1.new_jumpclass()
+    arena2.new_jumpclass()
     # create a class that is not allocated to an arena
-    arena2.new_jumpclass('Class6')
+    arena2.new_jumpclass()
     #create a test rider horse combination
     id = '1'
     horse = mock_event.new_horse(name='Pal')
@@ -101,20 +101,18 @@ def test_C4HEvent_get_combo(mock_event):
     assert that_combo is None
 
 def test_C4HEvent_get_jumpclasses(mock_event):
-    assert len(mock_event.get_jumpclasses()) == 6
-    new_event = c4h.C4HEvent('new event')
-    assert len(new_event.get_jumpclasses()) == 0
+    assert type(mock_event.get_jumpclasses()) == list
+    assert type(mock_event.get_jumpclasses()[0]) == c4h.C4HJumpClass
 
 
 # Arena
 # -------------------------------------------------------------
-def test_C4HArena_new_class(mock_event):
-    class9 = mock_event.arenas[0].new_class('Class9')
-    assert type(class9) == c4h.C4HJumpClass
+def test_C4HArena_new_jumpclass(mock_event):
+    assert type(mock_event.arenas[0].new_jumpclass()) == c4h.C4HJumpClass
 
-def test_C4HArena_get_class(mock_event):
-    assert type(mock_event.arenas[0].get_class('Class1')) == c4h.C4HJumpClass
-    assert mock_event.arenas[0].get_class('Class99') == False
+def test_C4HArena_get_jumpclass(mock_event):
+    assert type(mock_event.arenas[0].get_jumpclass('1')) == c4h.C4HJumpClass
+    assert mock_event.arenas[0].get_jumpclass('99') == False
 
 
 # JumpClass
@@ -132,12 +130,11 @@ def test_C4HJumpClass_get_combo(mock_event):
 def test_C4HArticle_init():
     this_article=c4h.C4HArticle('238.2.2')
     this_article.sub_articles.append({
-        'id': f'{this_article.id}/245.3',
+        'id': f'{this_article._id}/245.3',
         'description': 'Immediate Jumpoff',
         'alt_name': 'AM7'
     })
     assert type(this_article) == c4h.C4HArticle
-
 
 
 

@@ -18,12 +18,11 @@ def test_articles():
     for a, b in articles.items():
         print(f'{a} {b}\n')
 
-if __name__ == "__main__":
-
+def make_articles():
     fn = "test.c4ha"
     articles = []
     articles.append(c4h.C4HArticle(100))
-    articles.append(c4h.C4HArticle(200))
+    articles.append(c4h.C4HArticle(101))
     sub_art1 = {'id': '.1.2', 'name': 'sub_art1'}
     sub_art2 = {'id': '.1.2', 'name': 'sub_art2', 'table': 'C'}
     articles[1].sub_articles.append(sub_art1)
@@ -32,5 +31,9 @@ if __name__ == "__main__":
     with open(fn, 'w') as out_file:
         out_file.write('--- # C4H Articles\n')
         yaml.dump(articles, out_file)
+
+if __name__ == "__main__":
+    this_list = [1,2,3,4]
+    print(type(this_list))
 
     

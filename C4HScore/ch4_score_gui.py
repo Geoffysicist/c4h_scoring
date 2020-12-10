@@ -170,16 +170,13 @@ class C4HScoreGUI(ttk.Notebook):
                     # cancelled so do nothing
                     return 'cancelled'
 
-
-
     def jumpclass_new(self):
         # need to ensure a unique ID
         jumpclass = self.event.arenas[0].new_jumpclass()
         jc_tab = C4HJumpClassTab(self, jumpclass)
         self.add(jc_tab, text=jumpclass.name)
+
         
-
-
     def jumpclass_open(self):
         print('class_open stub')
 
@@ -327,33 +324,41 @@ class C4HJumpClassTab(ttk.Frame):
         '''
         super().__init__(master)
         self.jumpclass = jumpclass
+        self.master = master
 
         # set up all the tk string variables
         self.jc_name = tk.StringVar(self, f'{self.jumpclass.name}')
         self.jc_id = tk.StringVar(self, f'{self.jumpclass.id}')
         self.arena_id = tk.StringVar(self, f'{self.jumpclass.arena.id}')
 
-        arena_ids = []
-        for a in master.event.arenas:
-            arena_ids.append(a.id)
+        # arena_ids = [a.id for a in master.event.arenas]
+        # arena_ids = []
+        # for a in master.event.arenas:
+        #     arena_ids.append(a.id)
 
         jc_id_lbl = ttk.Label(self, text='Class ID: ')
         jc_id_entry = ttk.Entry(self, textvariable=self.jc_id)
         jc_name_lbl = ttk.Label(self, text='Class Name: ')
         jc_name_entry = ttk.Entry(self, textvariable=self.jc_name)
         arena_id_lbl = ttk.Label(self, text='Arena ID: ')
-        arena_id_entry = ttk.Combobox(self,
-            textvariable=self.arena_id, values=arena_ids)
-        
+        self.arena_id_entry = ttk.Combobox(self,
+            textvariable=self.arena_id)
+        # arena_id_entry = ttk.Combobox(self,
+        #     textvariable=self.arena_id, values=arena_ids)
+ 
         # grid it up
         jc_id_lbl.grid(row=1, column=1)
         jc_id_entry.grid(row=1, column=2)
-        arena_id_entry.grid(row=1, column=4)
+        self.arena_id_entry.grid(row=1, column=4)
         arena_id_lbl.grid(row=1, column=3)
         jc_name_lbl.grid(row=2, column=1)
         jc_name_entry.grid(row=2, column=2, columnspan=3, sticky='EW')
+        self.bind('<FocusIn>', self.update)
+        # self.update()
 
-
+    def update(self, event):
+        arena_ids = [a.id for a in self.master.event.arenas]
+        self.arena_id_entry.configure(values=arena_ids)
 
 
 

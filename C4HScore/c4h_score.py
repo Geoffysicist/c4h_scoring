@@ -9,41 +9,6 @@ import csv
 
 from datetime import date, datetime, timezone
 
-class C4HArticle(object):
-    '''EA/FEI article.
-
-    Attributes:
-        id (string): Article number
-        descrption (string): Short description of the class type
-        alt_name (string): Alternative name for the class
-        round_num (int): Number of rounds.
-        round_table (string): Table for the round.
-
-        identifier (string): the paragraph.subparagraph number string
-        description (string): word description of the competition
-        alt_name: the deprecated silly names that everyone still uses
-    '''
-
-    def __init__(self, id):
-        '''init the article with a dictionary of the id, description and old name.
-        '''
-        self.rules = 'EA'
-        self.id = id
-        self.description = ''
-        self.alt_name = None
-        self.round_num = 1
-        self.round_table = 'A'
-        self.round_against_clock = True
-        self.round_combinations = 'allowed'
-        self.jo_num = 0
-        self.jo_table = ''
-        self.jo_jumps = ''
-        self.jo_combinations = ''
-        self.sub_articles = []
-
-
-
-
 class C4HEvent(object):
     '''Equestrian Event.
 
@@ -85,7 +50,6 @@ class C4HEvent(object):
 
     def update(self):
         self.last_change = datetime.now(timezone.utc)
-
 
     def new_arena(self, arena_id, name):
         '''creates a new arena and appends it to the arena list.
@@ -186,6 +150,18 @@ class C4HEvent(object):
 
         return None
 
+    def get_jumpclasses(self):
+        '''
+        Returns:
+            list of C4HJumpClass objects
+        '''
+        jclasses = []
+        for a in self.arenas:
+            for j in a.jumpclasses:
+                jclasses.append(j)
+        
+        return jclasses
+
     def new_combo(self, id, rider=None, horse=None):
         '''creates a new rider and appends it to the _combos list.
 
@@ -215,11 +191,12 @@ class C4HEvent(object):
         return None
 
     def event_save(self):
+        """Dumps the event to a yaml like file."""
         # timestamp first so timestamp gets saved
         self.last_save = datetime.now(timezone.utc)
 
         with open(self.filename, 'w') as out_file:
-            out_file.write('--- # C4H Event Details\n')
+            out_file.write(f'--- # {self.name} C4HScore\n')
             yaml.dump(self, out_file)
 
     def event_save_as(self, fn):       
@@ -238,18 +215,6 @@ class C4HEvent(object):
 
         return new_event
     
-    def get_jumpclasses(self):
-        '''
-        Returns:
-            list of C4HJumpClass objects
-        '''
-        jclasses = []
-        for a in self.arenas:
-            for j in a.jumpclasses:
-                jclasses.append(j)
-        
-        return jclasses
-
 class C4HArena(object):
     '''An arena in the event which holds jumpclasses.
 
@@ -287,10 +252,11 @@ class C4HArena(object):
             ValueError: if a class with that class_id already exists
         '''
 
+        # TODO make sure unique id
+
         j = C4HJumpClass(self)
         self.jumpclasses.append(j)
         return j
-
 
     def get_jumpclass(self, class_id):
         '''returns the class with class_id.
@@ -313,6 +279,7 @@ class C4HJumpClass(object):
     '''A show jumping class.
 
     Attributes:
+        _ID (int): unique identifier
         id (str): an integer that may have a character appended eg. 8c 
         name (string):
         arena (C4HArena):
@@ -328,13 +295,16 @@ class C4HJumpClass(object):
 
     def __init__(self, arena):
 
-        #getunique ID
-        self._ID = 1
-        for jc in arena.jumpclasses:
-            if self._ID <= jc._ID:
-                self._ID = jc._ID + 1
-        self.id = self._ID
         self.arena = arena
+        self.arena.jumpclasses.append(self)
+        #getunique ID
+        self._ID = 0 #need a value here to avoid attribute error if first jumpclass
+        self._ID = max([jc._ID for jc in self.arena.event.get_jumpclasses()]) + 1
+        # self._ID = jc._ID +1 for jc in arena if self._ID < jc._ID
+        # for jc in arena.jumpclasses:
+        #     if self._ID <= jc._ID:
+        #         self._ID = jc._ID + 1
+        self.id = str(self._ID)
         self.name = f'Class {self.id}'
         self.article = None
         self.description = None
@@ -346,7 +316,7 @@ class C4HJumpClass(object):
         self.combos = []
         self.rounds= []
 
-        arena.jumpclasses.append(self)
+        # arena.jumpclasses.append(self)
 
     def get_combo(self, id):
         '''returns the C4HCombo with id == id else None if it doesn't exist.
@@ -429,6 +399,60 @@ class C4HRound(object):
         self.time_pens = None
         self.notes = ''
 
+class C4HArticle(object):
+    '''EA/FEI article.
+
+    Attributes:
+        id (string): Article number
+        descrption (string): Short description of the class type
+        alt_name (string): Alternative name for the class
+        round_num (int): Number of rounds.
+        round_table (string): Table for the round.
+
+        identifier (string): the paragraph.subparagraph number string
+        description (string): word description of the competition
+        alt_name: the deprecated silly names that everyone still uses
+    '''
+
+    def __init__(self, id):
+        '''init the article with a dictionary of the id, description and old name.
+        '''
+        self.rules = 'EA'
+        self._id = id
+        self.description = ''
+        self.alt_name = None
+        self.round_num = 1
+        self.round_table = 'A'
+        self.round_against_clock = True
+        self.round_combinations = 'allowed'
+        self.jo_num = 0
+        self.jo_table = ''
+        self.jo_jumps = ''
+        self.jo_combinations = ''
+        self.sub_articles = []
+
+    def articles_save(self, fn=None):
+        if not fn: fn = f'{self.rules}_articles.c4ha'
+
+        with open(fn, 'w') as out_file:
+            out_file.write(f'--- # {self.rules} Articles\n')
+            yaml.dump(self, out_file)
+
+    # def articles_save_as(self, fn):       
+    #     self.filename = fn
+    #     self.event_save()
+
+    def articles_open(self, fn):
+        ''' Creates an event from a c4hs yaml file.
+        
+        Returns:
+            C4HEvent
+        '''
+        with open(fn, 'r') as in_file:
+            new_event = yaml.load(in_file, Loader=yaml.FullLoader)
+            print(type(new_event))
+
+        return new_event
     
 
 # def read_csv_nominate(fn, event_name='New Event'):
