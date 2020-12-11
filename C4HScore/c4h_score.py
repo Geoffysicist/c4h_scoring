@@ -87,6 +87,21 @@ class C4HEvent(object):
         
         return None        
 
+    def get_arena_by_public_id(self, arena_id):
+        '''returns the arena with public arena_id.
+
+        Args:
+            arena_id (str):
+
+        Returns:
+            C4HArena or None if not found
+        '''
+        for a in self.arenas:
+            if a.id == arena_id:
+                return a
+        
+        return None        
+
     def new_rider(self, surname=None, given_name=None, ea_number=None):
         '''creates a new rider and appends it to the rider list.
 
@@ -286,11 +301,12 @@ class C4HJumpClass(object):
         description (string):
         article (EAArticle):
         height (int): the height in cm
-        times (list of ints): the times allowed for each phase
+        # times (list of ints): the times allowed for each phase
         judge (string): judges name
         cd (string): course designer name
         places (int): the number of places awarded prizes
-        combinations (list): list of the horse/rider combinations entered
+        # combinations (list): list of the horse/rider combinations entered
+        rounds (list of C4HRounds): rounds entered in this arenas
     '''
 
     def __init__(self, arena):
@@ -307,16 +323,14 @@ class C4HJumpClass(object):
         self.id = str(self._ID)
         self.name = f'Class {self.id}'
         self.article = None
-        self.description = None
+        self.description = ''
         self.height = None
-        self.times = []
-        self.judge = None
-        self.cd = None
+        # self.times = []
+        self.judge = ''
+        self.cd = ''
         self.places = 6
-        self.combos = []
+        # self.combos = []
         self.rounds= []
-
-        # arena.jumpclasses.append(self)
 
     def get_combo(self, id):
         '''returns the C4HCombo with id == id else None if it doesn't exist.

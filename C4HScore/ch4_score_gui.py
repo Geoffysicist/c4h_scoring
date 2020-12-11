@@ -320,6 +320,7 @@ class C4HJumpClassTab(ttk.Frame):
     def __init__(self, master, jumpclass):
         ''' Inits the jump class.
 
+        master (C4HEventDialog)
         jumpclass (C4HJumpClass)
         '''
         super().__init__(master)
@@ -327,38 +328,82 @@ class C4HJumpClassTab(ttk.Frame):
         self.master = master
 
         # set up all the tk string variables
-        self.jc_name = tk.StringVar(self, f'{self.jumpclass.name}')
         self.jc_id = tk.StringVar(self, f'{self.jumpclass.id}')
+        self.jc_name = tk.StringVar(self, f'{self.jumpclass.name}')
+        self.article = tk.StringVar(self, f'{self.jumpclass.article}')
         self.arena_id = tk.StringVar(self, f'{self.jumpclass.arena.id}')
+        self.jc_description = tk.StringVar(self, f'{self.jumpclass.description}')
+        self.jc_height = tk.IntVar(self)
+        self.jc_judge = tk.StringVar(self, f'{self.jumpclass.judge}')
+        self.jc_cd = tk.StringVar(self, f'{self.jumpclass.cd}')
+        self.jc_places = tk.IntVar(self, self.jumpclass.places)
 
-        # arena_ids = [a.id for a in master.event.arenas]
-        # arena_ids = []
-        # for a in master.event.arenas:
-        #     arena_ids.append(a.id)
-
+        # set up the corresponding widgets
         jc_id_lbl = ttk.Label(self, text='Class ID: ')
         jc_id_entry = ttk.Entry(self, textvariable=self.jc_id)
         jc_name_lbl = ttk.Label(self, text='Class Name: ')
         jc_name_entry = ttk.Entry(self, textvariable=self.jc_name)
         arena_id_lbl = ttk.Label(self, text='Arena ID: ')
-        self.arena_id_entry = ttk.Combobox(self,
-            textvariable=self.arena_id)
+        self.arena_id_entry = ttk.Combobox(self, textvariable=self.arena_id)
+        jc_description_lbl = ttk.Label(self, text='Description: ')
+        jc_description_entry = ttk.Entry(self, textvariable=self.jc_description)
+        jc_height_lbl = ttk.Label(self, text='Height (cm)')
+        jc_height_entry = ttk.Entry(self, textvariable=self.jc_height)
+        jc_judge_lbl = ttk.Label(self, text='Judge: ')
+        jc_judge_entry = ttk.Entry(self, textvariable=self.jc_judge)
+        jc_cd_lbl = ttk.Label(self, text='Course Designer: ')
+        jc_cd_entry = ttk.Entry(self, textvariable=self.jc_cd)
+        jc_places_lbl = ttk.Label(self, text='Places')
+        jc_places_entry = ttk.Entry(self, textvariable=self.jc_places)
+        save_btn = ttk.Button(self, text='Save', default='active', command=self.jumpclass_save)
+
         # arena_id_entry = ttk.Combobox(self,
         #     textvariable=self.arena_id, values=arena_ids)
  
         # grid it up
         jc_id_lbl.grid(row=1, column=1)
         jc_id_entry.grid(row=1, column=2)
-        self.arena_id_entry.grid(row=1, column=4)
         arena_id_lbl.grid(row=1, column=3)
+        self.arena_id_entry.grid(row=1, column=4)
         jc_name_lbl.grid(row=2, column=1)
         jc_name_entry.grid(row=2, column=2, columnspan=3, sticky='EW')
+        jc_description_lbl.grid(row=3, column=1)
+        jc_description_entry.grid(row=3, column=2, columnspan=3, sticky='EW')
+        jc_height_lbl.grid(row=4, column=1)
+        jc_height_entry.grid(row=4, column=2)
+        jc_places_lbl.grid(row=4, column=3)
+        jc_places_entry.grid(row=4, column=4)
+        jc_judge_lbl.grid(row=5, column=1)
+        jc_judge_entry.grid(row=5, column=2)
+        jc_cd_lbl.grid(row=5, column=3)
+        jc_cd_entry.grid(row=5, column=4)
+        save_btn.grid(row=6, column=2)
+
         self.bind('<FocusIn>', self.update)
         # self.update()
 
-    def update(self, event):
+    def update(self, *args):
         arena_ids = [a.id for a in self.master.event.arenas]
         self.arena_id_entry.configure(values=arena_ids)
+
+    def jumpclass_save(self):
+        self.jumpclass.arena = self.master.event.get_arena_by_public_id(
+            self.arena_id.get()
+        )
+
+        for key, attribute in vars(self.jumpclass).items():
+            for dlg_key, dlg_val in vars(self).items():
+                if f'jc_{key}' == dlg_key:
+                    self.jumpclass.__setattr__(key, dlg_val.get())
+
+                    
+
+        for key, attribute in vars(self.jumpclass).items():
+            print(f'{key}: {attribute}')
+        
+
+            
+
 
 
 
