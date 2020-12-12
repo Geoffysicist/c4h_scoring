@@ -1,6 +1,4 @@
-"""c4h_score - A scoreboard for judging showjumping.
-
-
+"""c4h_score.py - backend for C4HScore, a scoreboard for judging showjumping.
 """
 
 import json
