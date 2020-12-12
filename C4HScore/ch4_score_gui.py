@@ -1,3 +1,6 @@
+"""c4h_score_gui.py - GUI for C4HScore, a scoreboard for judging showjumping.
+"""
+
 from c4h_score import C4HEvent
 import tkinter as tk
 import tkcalendar as cal
