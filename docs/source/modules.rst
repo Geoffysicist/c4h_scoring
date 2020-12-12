@@ -4,4 +4,6 @@ module1
 .. toctree::
    :maxdepth: 4
 
-   module1
+   C4HCable
+   C4HScore
+   Resources
