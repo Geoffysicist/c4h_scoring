@@ -1,4 +1,4 @@
-C4HScore module
+C4HScore
 ==============
 
 .. automodule:: C4HScore

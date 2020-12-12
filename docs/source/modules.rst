@@ -1,4 +1,4 @@
-module1
+Modules
 =======
 
 .. toctree::
