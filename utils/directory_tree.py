@@ -1,15 +1,17 @@
-"""print_dir_tree prints the directory tree.
+"""directory_tree prints the directory tree as a text file.
 
-Leave one blank line.  The rest of this docstring should contain an
-overall description of the module or program.  Optionally, it may also
-contain a brief description of exported classes and functions and/or usage
-examples.
+use the exclude key word argument to exclude unwanted files.
+For example exclude="." excludes all files starting with .
+exclude='._' excludes all files starting with . or _
+exclude='foo' excludes all files starting with f, or o.
 
   Typical usage example:
 
-  paths = DisplayablePath.make_tree(Path('doc'))
+  paths = DisplayablePath.make_tree(Path('relative_path'), exclude='._')
   for path in paths:
     print(path.displayable())
+
+TODO add .gitignore to criteria
 """
 from pathlib import Path
 
@@ -35,16 +37,17 @@ class DisplayablePath(object):
         return self.path.name
 
     @classmethod
-    def make_tree(cls, root, parent=None, is_last=False, criteria=None):
+    def make_tree(cls, root, parent=None, is_last=False, exclude=None):
         root = Path(str(root))
-        criteria = criteria or cls._default_criteria
+        # criteria = criteria or cls._default_criteria
+        exclude = exclude
 
         displayable_root = cls(root, parent, is_last)
         yield displayable_root
 
         children = sorted(list(path
                                for path in root.iterdir()
-                               if criteria(path)),
+                               if cls.check_criteria(path, exclude=exclude)),
                           key=lambda s: str(s).lower())
         count = 1
         for path in children:
@@ -53,14 +56,29 @@ class DisplayablePath(object):
                 yield from cls.make_tree(path,
                                          parent=displayable_root,
                                          is_last=is_last,
-                                         criteria=criteria)
+                                         exclude=exclude)
             else:
                 yield cls(path, displayable_root, is_last)
             count += 1
 
+    # @classmethod
+    # def _default_criteria(cls, path):
+    #     return True
+
     @classmethod
-    def _default_criteria(cls, path):
-        return True
+    def check_criteria(cls, path, exclude):
+        # exclude = exclude
+        sub_path = path.__str__().split('\\')[-1]
+        # print(sub_path)
+        if sub_path[0] in exclude:
+            # print(f'ignored path {path}')
+            return False
+        else:
+            # print(path)
+
+            return True
+
+            
 
     @property
     def displayname(self):
@@ -87,3 +105,8 @@ class DisplayablePath(object):
             parent = parent.parent
 
         return ''.join(reversed(parts))
+
+if __name__ == "__main__":
+    paths = DisplayablePath.make_tree(Path('C4HScore'), exclude='._')
+    for path in paths:
+        print(path.displayable())
