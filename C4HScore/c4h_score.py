@@ -169,9 +169,9 @@ class C4HEvent(object):
             list of C4HJumpClass objects
         '''
         jclasses = []
-        for a in self.arenas:
-            for j in a.jumpclasses:
-                jclasses.append(j)
+        for jc_list in [a.jumpclasses for a in self.arenas]:
+            jclasses.extend(jc_list)
+        print(jclasses)
         
         return jclasses
 
@@ -259,7 +259,6 @@ class C4HArena(object):
         if not a new class is created and added to the class list then returned
 
         Args:
-            class_id (string): the id of the class to check/create
 
         Raises:
             ValueError: if a class with that class_id already exists
@@ -330,13 +329,13 @@ class C4HJumpClass(object):
         # self.combos = []
         self.rounds= []
 
-    def get_combo(self, id):
-        '''returns the C4HCombo with id == id else None if it doesn't exist.
-        '''
-        for c in self.combos:
-            if c.id == id: return c
+    # def get_combo(self, id):
+    #     '''returns the C4HCombo with id == id else None if it doesn't exist.
+    #     '''
+    #     for c in self.combos:
+    #         if c.id == id: return c
 
-        return None
+    #     return None
 
 class C4HRider(object):
     '''Rider details.
@@ -515,7 +514,7 @@ class C4HArticle(object):
 
 if __name__ == "__main__":
     pass
-    #now the event stuff
+
 
 
 

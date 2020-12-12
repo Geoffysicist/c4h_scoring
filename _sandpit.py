@@ -1,13 +1,21 @@
-import yaml
-import c4h_score as c4h
+l = []
+if not l:
+    print(bool(l))
+else:
+    print('nit')
 
-fn = "test.c4ha"
-articles = []
-articles.append(c4h.C4HArticle(100))
-articles.append(c4h.C4HArticle(200))
-with open(fn, 'w') as out_file:
-    out_file.write('--- # C4H Articles\n')
-    yaml.dump(self, out_file)
+print(bool(l))
+
+# import yaml
+# import c4h_score as c4h
+
+# fn = "test.c4ha"
+# articles = []
+# articles.append(c4h.C4HArticle(100))
+# articles.append(c4h.C4HArticle(200))
+# with open(fn, 'w') as out_file:
+#     out_file.write('--- # C4H Articles\n')
+#     yaml.dump(self, out_file)
 
 
 # class test_class(object):

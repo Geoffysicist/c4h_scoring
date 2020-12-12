@@ -89,8 +89,7 @@ class C4HScoreGUI(ttk.Notebook):
                 self.jumpclassmenu.entryconfig("Edit", state="normal")
 
     def event_new(self):
-        ''' Opens a new event dialog.
-        '''
+        """Opens a new event dialog."""
         if self.event_check_saved() == 'cancelled': return
 
         self.event = C4HEvent('New Event')
@@ -111,15 +110,17 @@ class C4HScoreGUI(ttk.Notebook):
         #if cancel button wasn't clicked
         if fn:
             # if no event yet need to create one
+            # TODO better to do this with a class level method
             if not self.event:
-                self.event = C4HEvent('Temp Event')
+                self.event = C4HEvent('_')
             
             self.event = self.event.event_open(fn)
 
             self.update()
 
     def event_edit(self):
-        # C4HEventDialog(self.master, self.event)
+        '''Opens a C4HEventDialog for editing event details.'''
+        
         C4HEventDialog(self)
 
     def event_save(self):
@@ -174,17 +175,27 @@ class C4HScoreGUI(ttk.Notebook):
                     return 'cancelled'
 
     def jumpclass_new(self):
-        # need to ensure a unique ID
+        """Create a new jumpclass and open the jumpclass editor."""
+        #TODO need to ensure a unique ID
         jumpclass = self.event.arenas[0].new_jumpclass()
-        jc_tab = C4HJumpClassTab(self, jumpclass)
-        self.add(jc_tab, text=jumpclass.name)
-
-        
+        self.jumpclass_edit(jumpclass)
+       
     def jumpclass_open(self):
         print('class_open stub')
 
-    def jumpclass_edit(self):
-        print('class_edit stub')
+    def jumpclass_edit(self, jumpclass=None):
+        """Open the jumpclass editor and set selection to jumpclass.
+        
+        If no lumpclass is passed the selection is set to jumpclass1 in arena1
+
+        Args:
+            jumpclass (C4HJumpclass): Default is None.
+        """
+        if not jumpclass:
+            jumpclass = self.event.get_jumpclasses()[0]
+        # jc_tab = C4HJumpClassTab(self, jumpclass)
+        # self.add(jc_tab, text=jumpclass.name)
+        C4HJumpClassTab(self, jumpclass)
 
 class C4HEventDialog(tk.Toplevel):
     '''A top level dialog for editing event details.
@@ -316,7 +327,8 @@ class C4HEventDialog(tk.Toplevel):
         self.master.update()
         self.destroy()
 
-class C4HJumpClassTab(ttk.Frame):
+# class C4HJumpClassTab(ttk.Frame):
+class C4HJumpClassTab(tk.Toplevel):
     '''Frame for holding jump class details.
     '''
 
