@@ -1,7 +1,7 @@
-C4HScore
+C4HScore c4h_score
 ==============
 
-.. automodule:: C4HScore
+.. automodule:: c4h_score
    :members:
    :undoc-members:
    :show-inheritance:
