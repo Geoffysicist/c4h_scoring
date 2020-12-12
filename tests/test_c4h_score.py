@@ -19,7 +19,7 @@ def mock_event():
     horse = mock_event.new_horse(name='Pal')
     rider = mock_event.new_rider(given_name='Phil', surname='McCraken')
     combo1 = mock_event.new_combo(id, rider, horse)
-    class1.combos.append(combo1)
+    # class1.combos.append(combo1)
     
     return mock_event
 
