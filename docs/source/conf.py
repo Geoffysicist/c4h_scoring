@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../module1/'))
+sys.path.insert(0, os.path.abspath('../../C4HScore/'))
 
 # copy the README.md from the root directory - this will overwrite any README.md in the docs/source directory
 # comment out the following if this is not wanted
@@ -28,9 +28,9 @@ except FileNotFoundError:
 
 # -- Project information -----------------------------------------------------
 
-project = 'Prof Sticks Mostly Good Python Template'
-copyright = '2020, ProfStick'
-author = 'ProfStick'
+project = 'Courses For Horses'
+copyright = '2020, Geoffysicist'
+author = 'Geoffysicist'
 
 # The full version, including alpha/beta/rc tags
 release = '0.0.1'
