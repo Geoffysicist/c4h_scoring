@@ -7,6 +7,8 @@ import csv
 import uuid
 
 from datetime import date, datetime, timezone
+from dataclasses import dataclass, field
+
 
 class C4HEvent(object):
     '''Equestrian Event.
@@ -42,19 +44,19 @@ class C4HEvent(object):
         # self.timezone = timezone.utc
         self.last_save = datetime(1984,4,4, 13, tzinfo=timezone.utc)
         self.last_change = datetime.now(timezone.utc)
-        # self.changed = True
 
         # add default arena
         self.new_arena('1','Arena 1')
 
     def update(self):
         self.last_change = datetime.now(timezone.utc)
+        return self.last_change
 
     def new_arena(self, arena_id, name):
         '''creates a new arena and appends it to the arena list.
 
         Args:
-            arena_id (string): the name of the arena to check/create
+            arena_id (string):
             name (string):
 
         Returns:
@@ -101,33 +103,37 @@ class C4HEvent(object):
         
         return None        
 
-    def new_rider(self, surname=None, given_name=None, ea_number=None):
+    def new_rider(self, surname=None, given_name=None):
         '''creates a new rider and appends it to the rider list.
 
         It seems odd to initialise these attribures with None but I want
-        users to be able to enter some dataif they don't know all of it.
+        users to be able to enter some data if they don't know all of it.
         They may know the given name but not the surname or vice versa
 
         Args:
             surname (string): 
             given_name (string): 
-            ea_number (string): length must be 7 digits
+            # ea_number (string): length must be 7 digits
 
         Returns:
             C4HRider
         '''
+        # check that rider doesn't exist
         for r in self.riders:
             if ((r.surname == surname) and (r.given_name == given_name)):
                 raise ValueError(f"Rider {surname} {given_name} already exists")
 
-        r = C4HRider(surname=surname, given_name=given_name, ea_number=ea_number)
+        r = C4HRider(surname=surname, given_name=given_name)
         self.riders.append(r)
         self.update()
 
         return r
       
     def get_rider(self, surname, given_name):
-        '''returns the C4HRider matching surname and given_name else None if rider doesn't exist.
+        '''Find rider by surname and given_name.
+
+        Returns:
+            C4HRider else None if rider doesn't exist.
         '''
         for r in self.riders:
             if (r.surname == surname and r.given_name == given_name):
@@ -172,7 +178,6 @@ class C4HEvent(object):
         jclasses = []
         for jc_list in [a.jumpclasses for a in self.arenas]:
             jclasses.extend(jc_list)
-        print(jclasses)
         
         return jclasses
 
@@ -180,7 +185,7 @@ class C4HEvent(object):
         '''creates a new rider and appends it to the _combos list.
 
         Args:
-            id (str): unique id
+            id (str): unique id usually an entry number
             rider (C4HRider):
             horse(C4HHorse)
 
@@ -191,7 +196,7 @@ class C4HEvent(object):
             if c.id == id:
                 raise ValueError(f"Combo ID {id} already exists")
 
-        c = C4HCombo(id, rider, horse)
+        c = C4HCombo(rider, horse)
         self.combos.append(c)
         self.update()
         return c
@@ -225,11 +230,11 @@ class C4HEvent(object):
         '''
         with open(fn, 'r') as in_file:
             new_event = yaml.load(in_file, Loader=yaml.FullLoader)
-            print(type(new_event))
 
         return new_event
     
-class C4HArena(object):
+@dataclass
+class C4HArena:
     '''An arena in the event which holds jumpclasses.
 
     Attributes:
@@ -240,17 +245,18 @@ class C4HArena(object):
         jumpclasses (list):
     '''
 
+    # arena_id: str
+    # name: str
+    # event: C4HEvent
+    # jumpclasses: list[C4HJumpClass] = field(default_factory=list)
+    # _ID: int = 1 + max([a._ID for a in self.event.arenas])
+
     def __init__(self, arena_id, name, event):
+        self.id = arena_id #TODO just use @property getter and setter to check this
         self.name = name
         self.event = event
         self.jumpclasses = []
-        self.id = arena_id #TODO just use @property getter and setter to check this
-        next_id = 1
-        for a in self.event.arenas:
-            if a._ID >= next_id:
-                next_id = next_id + 1
-
-        self._ID = next_id
+        self._ID = uuid.uuid1()
 
     def new_jumpclass(self):
         '''creates a new jumpclass if it doesn't exist.
@@ -268,7 +274,7 @@ class C4HArena(object):
         # TODO make sure unique id
 
         j = C4HJumpClass(self)
-        self.jumpclasses.append(j)
+        # self.jumpclasses.append(j)
         return j
 
     def get_jumpclass(self, class_id):
@@ -322,7 +328,7 @@ class C4HJumpClass(object):
         self.name = f'Class {self.id}'
         self.article = None
         self.description = ''
-        self.height = None
+        self.height = 0
         # self.times = []
         self.judge = ''
         self.cd = ''
@@ -338,39 +344,59 @@ class C4HJumpClass(object):
 
     #     return None
 
+@dataclass
 class C4HRider(object):
     '''Rider details.
 
     Attributes:
         surname (string)
-        given_name (string): This must n digits
-        ea_number (int):
+        given_name (string): 
+        ea_number (string): This must 7 numerical digits
     '''
-    def __init__(self, surname, given_name, ea_number):
-        self.surname = surname
-        self.given_name = given_name
+    surname: str
+    given_name: str
+    _ea_number: str = ''
+    # def __init__(self, surname, given_name, ea_number):
+    #     self.surname = surname
+    #     self.given_name = given_name
 
-        if ea_number:
-            if ea_number.isnumeric() and (len(ea_number) == 7):
-                self.ea_number = ea_number
-            else:
-                raise ValueError('Rider EA number should be a number 7 digits long')
+    @property
+    def ea_number(self):
+        return self._ea_number
+
+    @ea_number.setter
+    def ea_number(self, ea_number):
+        if ea_number.isnumeric() and (len(ea_number) == 7):
+            self._ea_number = ea_number
+        else:
+            raise ValueError('Rider EA number should be a number 7 digits long')
+        
+        return self._ea_number
 
 class C4HHorse(object):
     '''Horse details.
 
     Attributes:
         name (string):
-        ea_number (int): this must be n digits
+        ea_number (string): this must be 8 numerical digits
     '''
-    def __init__(self, name, ea_number):
-        self.name = name
+    # def __init__(self, name, ea_number):
+    #     self.name = name
+    name: str
+    _ea_number: str = ''
 
-        if ea_number:
-            if ea_number.isnumeric() and (len(ea_number) == 8):
-                self.ea_number = ea_number
-            else:
-                raise ValueError('Rider EA number should be a number 8 digits long')
+    @property
+    def ea_number(self):
+        return self._ea_number
+
+    @ea_number.setter
+    def ea_number(self, ea_number):
+        if ea_number.isnumeric() and (len(ea_number) == 8):
+            self._ea_number = ea_number
+        else:
+            raise ValueError('Horse EA number should be a number 8 digits long')
+        
+        return self._ea_number
 
 class C4HCombo(object):
     '''Rider/horse combinations.
@@ -382,8 +408,8 @@ class C4HCombo(object):
         rounds (C4HRound)
     '''
 
-    def __init__(self, id, rider, horse):
-        self.id = id
+    def __init__(self, rider, horse):
+        self._ID = uuid.uuid1()
         self.rider = rider
         self.horse= horse
 
@@ -462,7 +488,6 @@ class C4HArticle(object):
         '''
         with open(fn, 'r') as in_file:
             new_event = yaml.load(in_file, Loader=yaml.FullLoader)
-            print(type(new_event))
 
         return new_event
     
