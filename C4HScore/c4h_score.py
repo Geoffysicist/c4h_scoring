@@ -4,6 +4,7 @@
 import json
 import yaml
 import csv
+import uuid
 
 from datetime import date, datetime, timezone
 
@@ -243,7 +244,7 @@ class C4HArena(object):
         self.name = name
         self.event = event
         self.jumpclasses = []
-        self.id = arena_id
+        self.id = arena_id #TODO just use @property getter and setter to check this
         next_id = 1
         for a in self.event.arenas:
             if a._ID >= next_id:
@@ -396,7 +397,7 @@ class C4HRound(object):
         faults (list): Jump numbers followed by one or more letters indicating the fault type.
             rail: r, disobedience: d, displacement/knockdown: k, fall: f, elimination: e
         jump_pens (int):
-        time (float): time in secs
+        time (float): time 0.01 secs
         time_pens (int):
         notes (str): optional notes from the judge
     '''
@@ -405,9 +406,9 @@ class C4HRound(object):
         self.round_type = round_type
         self.combo = combo
         self.faults = []
-        self.jump_pens = None
-        self.time = None
-        self.time_pens = None
+        self.jump_pens = 0
+        self.time = 0
+        self.time_pens = 0
         self.notes = ''
 
 class C4HArticle(object):

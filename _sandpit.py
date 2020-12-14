@@ -1,10 +1,36 @@
-l = []
-if not l:
-    print(bool(l))
-else:
-    print('nit')
+import uuid
+from dataclasses import dataclass, field
 
-print(bool(l))
+@dataclass
+class Test:
+    age: int
+    porn_name: str
+    _name: str = ''
+    roles: list[str] = field(default_factory=list)
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self._name = name
+        return name
+
+
+
+fred = Test(42.3, 'el fredo')
+
+print(fred)
+
+fred.roles = [1,2,3]
+fred.name = "fred"
+print(fred.name, fred.roles)
+
+id = uuid.uuid1()
+print(type(id), id)
+print(id.is_safe)
+
 
 # import yaml
 # import c4h_score as c4h
