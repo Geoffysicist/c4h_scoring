@@ -124,6 +124,7 @@ class C4HEvent(object):
                 raise ValueError(f"Rider {surname} {given_name} already exists")
 
         r = C4HRider(surname=surname, given_name=given_name)
+
         self.riders.append(r)
         self.update()
 
@@ -196,7 +197,7 @@ class C4HEvent(object):
             if c.id == id:
                 raise ValueError(f"Combo ID {id} already exists")
 
-        c = C4HCombo(rider, horse)
+        c = C4HCombo(id, rider, horse)
         self.combos.append(c)
         self.update()
         return c
@@ -399,6 +400,7 @@ class C4HHorse(object):
         
         return self._ea_number
 
+@dataclass
 class C4HCombo(object):
     '''Rider/horse combinations.
 
@@ -406,13 +408,13 @@ class C4HCombo(object):
         id (int): unique id for combination
         rider (C4HRider):
         horse (C4HHorse):
-        rounds (C4HRound)
     '''
 
-    def __init__(self, rider, horse):
-        self._ID = uuid.uuid1()
-        self.rider = rider
-        self.horse= horse
+    # def __init__(self, id, rider, horse):
+    id: str
+    rider: C4HRider
+    horse: C4HHorse
+    _ID: uuid.uuid1 = uuid.uuid1()
 
 class C4HRound(object):
     '''Jump round and results.

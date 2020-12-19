@@ -1,22 +1,53 @@
 --- # New Event C4HScore
-&id001 !!python/object:c4h_score.C4HEvent
+&id001 !!python/object:C4HScore.score.C4HEvent
 arenas:
-- !!python/object:c4h_score.C4HArena
+- &id002 !!python/object:C4HScore.score.C4HArena
   _ID: !!python/object:uuid.UUID
-    int: 129856729684074975294786086645173440541
+    int: 109092165689808362266596173624861118493
   event: *id001
   id: '1'
-  jumpclasses: []
+  jumpclasses:
+  - !!python/object:C4HScore.score.C4HJumpClass
+    _ID: 1
+    arena: &id003 !!python/object:C4HScore.score.C4HArena
+      _ID: !!python/object:uuid.UUID
+        int: 109092165769036524783123288556182032413
+      event: *id001
+      id: '2'
+      jumpclasses: []
+      name: Arena 2
+    article: null
+    cd: ''
+    description: ''
+    height: 0
+    id: '4'
+    judge: ''
+    name: Class 4
+    places: 6
+    rounds: []
+  - !!python/object:C4HScore.score.C4HJumpClass
+    _ID: 2
+    arena: *id002
+    article: null
+    cd: ''
+    description: ''
+    height: 0
+    id: '2'
+    judge: ''
+    name: Class 2
+    places: 6
+    rounds: []
   name: Arena 1
+- *id003
 combos: []
 dates:
-- 2020-12-14
-- 2020-12-14
+- 2020-12-19
+- 2020-12-19
 details: ''
 filename: C:/Users/Geoffysicist/Projects/Courses4Horses/_dev/simplest event.c4hs
 horses: []
 indent: '  '
-last_change: 2020-12-14 09:26:03.198861+00:00
-last_save: 2020-12-14 09:26:20.782957+00:00
+last_change: 2020-12-19 09:55:55.693059+00:00
+last_save: 2020-12-19 09:56:00.550057+00:00
 name: New Event
 riders: []

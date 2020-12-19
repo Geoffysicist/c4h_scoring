@@ -313,7 +313,7 @@ class C4HEventDialog(tk.Toplevel):
     def set_event(self):
         self.event.name = self.event_name.get()
         self.event.dates = [self.start_picker.get_date(),self.end_picker.get_date()]
-        # self.event.arenas = []
+        self.event.arenas = []
         for a in self.arenas:
             this_arena = self.event.get_arena(a[0])
             if this_arena: #arena already exists
