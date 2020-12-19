@@ -73,7 +73,7 @@ class C4HEvent(object):
 
         return a
 
-    def get_arena(self, arena_ID):
+    def get_arena(self, arena_id):
         '''returns the arena with unique private arena _ID.
 
         Args:
@@ -83,7 +83,7 @@ class C4HEvent(object):
             C4HArena or None if not found
         '''
         for a in self.arenas:
-            if a._ID == arena_ID:
+            if a.id == arena_id:
                 return a
         
         return None        
@@ -141,7 +141,7 @@ class C4HEvent(object):
 
         return None
 
-    def new_horse(self, name, ea_number=None):
+    def new_horse(self, name):
         '''creates a new horse and appends it to the _horses list.
 
         Args:
@@ -155,7 +155,7 @@ class C4HEvent(object):
             if h.name == name:
                 raise ValueError(f"Horse {name} already exists")
 
-        h = C4HHorse(name, ea_number=ea_number)
+        h = C4HHorse(name)
         self.horses.append(h)
         self.update()
 
@@ -373,6 +373,7 @@ class C4HRider(object):
         
         return self._ea_number
 
+@dataclass
 class C4HHorse(object):
     '''Horse details.
 

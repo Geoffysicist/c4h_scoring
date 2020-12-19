@@ -6,7 +6,8 @@ import tkcalendar as cal
 import ctypes
 # import c4h_score
 
-from c4h_score import C4HEvent
+# from c4h_score import C4HEvent
+from .score import C4HEvent
 from tkinter import ttk, filedialog, messagebox
 from datetime import date
 
@@ -88,9 +89,6 @@ class C4HScoreGUI(ttk.Notebook):
                 self.jumpclassmenu.entryconfig("Edit", state="disabled")
             else:
                 self.jumpclassmenu.entryconfig("Edit", state="normal")
-
-
-            print(f'{self.event.get_jumpclasses()} jumpclasses in list')
 
     def event_new(self):
         """Opens a new event dialog."""
@@ -183,9 +181,6 @@ class C4HScoreGUI(ttk.Notebook):
         #TODO need to ensure a unique ID
         jumpclass = self.event.arenas[0].new_jumpclass()
         self.jumpclass_edit(jumpclass)
-       
-    # def jumpclass_open(self):
-    #     print('class_open stub')
 
     def jumpclass_edit(self, jumpclass=None):
         """Open the jumpclass editor and set selection to jumpclass.
@@ -421,11 +416,10 @@ class C4HJumpClassTab(tk.Toplevel):
     def jumpclass_selected(self, eventObject):
         '''Upates dialog field after selection made in jumpclass combo box.
         '''
-        print('combobox selected')
         for j in self.master.event.get_jumpclasses():
             if j.id == self.jumpclass_id.get():
                 self.jumpclass = j
-                print('çhanged class')
+                
 
         self.update()
 
@@ -444,9 +438,8 @@ class C4HJumpClassTab(tk.Toplevel):
             for dlg_key, dlg_val in vars(self).items():
                 
                 if f'jumpclass_{key}' == dlg_key:
-                    print(f'{dlg_key}: {dlg_val.get()}')
                     self.jumpclass.__setattr__(key, dlg_val.get())
-                    # print(f'{vars(self.jumpclass)}')
+                    
                     
         
         self.update()
