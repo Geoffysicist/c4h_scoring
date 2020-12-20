@@ -9,6 +9,7 @@ import uuid
 from datetime import date, datetime, timezone
 from dataclasses import dataclass, field
 
+INDENT = '  ' #indent used for output
 
 class C4HEvent(object):
     '''Equestrian Event.
@@ -40,8 +41,6 @@ class C4HEvent(object):
         self.combos = []
         self.details = ''
         self.dates = [date.today(),date.today()]
-        self.indent = '  '
-        # self.timezone = timezone.utc
         self.last_save = datetime(1984,4,4, 13, tzinfo=timezone.utc)
         self.last_change = datetime.now(timezone.utc)
 
@@ -62,11 +61,8 @@ class C4HEvent(object):
         Returns:
             C4HArena
         '''
-        for a in self.arenas:
-            if a.id == arena_id:
-                raise ValueError(f"Arena with id {arena_id} already exists")
-
-        a = C4HArena(arena_id, name, self)
+        a = C4HArena(name, self)
+        a.id = arena_id
 
         self.arenas.append(a)
         self.update()
@@ -233,68 +229,7 @@ class C4HEvent(object):
             new_event = yaml.load(in_file, Loader=yaml.FullLoader)
 
         return new_event
-    
-@dataclass
-class C4HArena:
-    '''An arena in the event which holds jumpclasses.
 
-    Attributes:
-        _ID (int): private id
-        id (str): public id
-        name (string):
-        event (C4HEvent): parent event
-        jumpclasses (list):
-    '''
-
-    # arena_id: str
-    # name: str
-    # event: C4HEvent
-    # jumpclasses: list[C4HJumpClass] = field(default_factory=list)
-    # _ID: int = 1 + max([a._ID for a in self.event.arenas])
-
-    def __init__(self, arena_id, name, event):
-        self.id = arena_id #TODO just use @property getter and setter to check this
-        self.name = name
-        self.event = event
-        self.jumpclasses = []
-        self._ID = uuid.uuid1()
-
-    def new_jumpclass(self):
-        '''creates a new jumpclass if it doesn't exist.
-
-        checks to see if a class with name class_id exists
-        if it exists a valueerror is raised
-        if not a new class is created and added to the class list then returned
-
-        Args:
-
-        Raises:
-            ValueError: if a class with that class_id already exists
-        '''
-
-        # TODO make sure unique id
-
-        j = C4HJumpClass(self)
-        # self.jumpclasses.append(j)
-        return j
-
-    def get_jumpclass(self, class_id):
-        '''returns the class with class_id.
-
-        Args:
-            class_id (string): the name of the class to find
-
-        Returns:
-            C4HJumpclass or False if not found
-        '''
-        this_class = False
-        
-        for j in self.jumpclasses:
-            if j.id == class_id:
-                this_class = j
-        
-        return this_class
-    
 class C4HJumpClass(object):
     '''A show jumping class.
 
@@ -346,6 +281,71 @@ class C4HJumpClass(object):
     #     return None
 
 @dataclass
+class C4HArena:
+    '''An arena in the event which holds jumpclasses.
+
+    Attributes:
+        _ID (int): private id
+        id (str): public id
+        name (string):
+        # event (C4HEvent): parent event
+        jumpclasses (list):
+    '''
+
+    name: str
+    event: C4HEvent
+    _id: str =''
+    jumpclasses: list[C4HJumpClass] = field(default_factory=list)
+    _ID: int = uuid.uuid1()
+
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, id):
+        if id in [a.id for a in self.event.arenas]:
+            raise ValueError(f'Arena with id {id} already exists')
+        else:
+            self._id = id
+
+        return self._id
+
+    def new_jumpclass(self):
+        '''creates a new jumpclass if it doesn't exist.
+
+        checks to see if a class with name class_id exists
+        if it exists a valueerror is raised
+        if not a new class is created and added to the class list then returned
+
+        Args:
+
+        Raises:
+            ValueError: if a class with that class_id already exists
+        '''
+
+        j = C4HJumpClass(self)
+        self.jumpclasses.append(j)
+        return j
+
+    def get_jumpclass(self, class_id):
+        '''returns the class with class_id.
+
+        Args:
+            class_id (string): the name of the class to find
+
+        Returns:
+            C4HJumpclass or False if not found
+        '''
+        this_class = False
+        
+        for j in self.jumpclasses:
+            if j.id == class_id:
+                this_class = j
+        
+        return this_class
+    
+@dataclass
 class C4HRider(object):
     '''Rider details.
 
@@ -357,9 +357,6 @@ class C4HRider(object):
     surname: str
     given_name: str
     _ea_number: str = ''
-    # def __init__(self, surname, given_name, ea_number):
-    #     self.surname = surname
-    #     self.given_name = given_name
 
     @property
     def ea_number(self):
