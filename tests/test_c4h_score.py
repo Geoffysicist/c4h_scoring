@@ -8,7 +8,7 @@ import time
 def mock_event():
     mock_event = c4h.C4HEvent('Baccabuggry World Cup')
     # arena1 = mock_event.arenas[0]
-    # arena2 = mock_event.new_arena('2','Arena2')
+    arena2 = mock_event.new_arena('2','Arena2')
     # class1 = arena1.new_jumpclass()
     # arena2.new_jumpclass()
     # arena1.new_jumpclass()
@@ -18,8 +18,10 @@ def mock_event():
     # arena2.new_jumpclass()
     # #create a test rider horse combination
     # id = '1'
-    # horse = mock_event.new_horse('Pal')
-    # rider = mock_event.new_rider(given_name='Phil', surname='McCraken')
+    horse = mock_event.new_horse('Topless')
+    horse.ea_number = '12345678'
+    rider = mock_event.new_rider(given_name='Phil', surname='McCraken')
+    rider = mock_event.new_rider(given_name='Bob', surname='Down')
     # combo1 = mock_event.new_combo(id, rider, horse)
     # # class1.combos.append(combo1)
     
@@ -32,6 +34,10 @@ def test_C4HEvent_update(mock_event):
     time.sleep(1e-6)
     assert mock_event.update() > previous_update
 
+# def test_C4HEvent_check_unique_id(mock_event):
+#     assert mock_event.check_unique_id('1', mock_event.arenas) == False
+#     assert mock_event.check_unique_id('42', mock_event.arenas) == True
+
 def test_C4HEvent_new_arena(mock_event):
     arena3 = mock_event.new_arena('3','Arena3')
     assert type(arena3) == c4h.C4HArena
@@ -40,61 +46,64 @@ def test_C4HEvent_new_arena(mock_event):
         mock_event.new_arena('1','Arena1')
     assert str(e.value) == "Arena with id 1 already exists"
 
-# def test_C4HEvent_get_arena(mock_event):
-#     assert type(mock_event.get_arena('1')) == c4h.C4HArena
-#     assert mock_event.get_arena(999) == None
+def test_C4HEvent_get_arenas(mock_event):
+    assert type(mock_event.get_arenas(id='1')[0]) == c4h.C4HArena
+    assert type(mock_event.get_arenas(name='Arena2')[0]) == c4h.C4HArena
+    assert not mock_event.get_arenas(id='42')
 
-# def test_C4HEvent_new_rider(mock_event):
-#     surname = "Zarzhoff"
-#     given = 'Bluey'
-#     new_rider = mock_event.new_rider(surname=surname, given_name=given)
-#     assert type(new_rider) == c4h.C4HRider
+def test_C4HEvent_new_rider(mock_event):
+    surname = "Zarzhoff"
+    given = 'Bluey'
+    new_rider = mock_event.new_rider(surname=surname, given_name=given)
+    assert type(new_rider) == c4h.C4HRider
     
-#     with pytest.raises(ValueError) as e:
-#         mock_event.new_rider(surname=surname, given_name=given)
-#     assert str(e.value) == "Rider Zarzhoff Bluey already exists"
+    with pytest.raises(ValueError) as e:
+        mock_event.new_rider(surname=surname, given_name=given)
+    assert str(e.value) == "Rider Zarzhoff Bluey already exists"
 
-#     # test with a correct number of digits for ea_number
-#     given = 'Bernie'
-#     ea_number = '1234567'
-#     new_rider = mock_event.new_rider(surname=surname, given_name=given)
-#     new_rider.ea_number = ea_number
-#     assert type(new_rider) == c4h.C4HRider
+    # test with a correct number of digits for ea_number
+    given = 'Bernie'
+    ea_number = '1234567'
+    new_rider = mock_event.new_rider(surname=surname, given_name=given)
+    new_rider.ea_number = ea_number
+    assert type(new_rider) == c4h.C4HRider
 
-#     # test with an incorrect number of digits for ea_number
-#     given = 'Terry'
-#     ea_number = '12345678'
-#     with pytest.raises(ValueError) as e:
-#             # new_rider = mock_event.new_rider(surname=surname, given_name=given, ea_number=ea_number)
-#             new_rider = mock_event.new_rider(surname=surname, given_name=given)
-#             new_rider.ea_number = ea_number
-#     assert str(e.value) == "Rider EA number should be a number 7 digits long"
+    # test with an incorrect number of digits for ea_number
+    given = 'Terry'
+    ea_number = '12345678'
+    with pytest.raises(ValueError) as e:
+            # new_rider = mock_event.new_rider(surname=surname, given_name=given, ea_number=ea_number)
+            new_rider = mock_event.new_rider(surname=surname, given_name=given)
+            new_rider.ea_number = ea_number
+    assert str(e.value) == "Rider EA number should be a number 7 digits long"
 
-# def test_C4HEvent_get_rider(mock_event):
-#     rider = mock_event.get_rider('McCraken', 'Phil')
-#     assert type(rider) == c4h.C4HRider
+def test_C4HEvent_get_riders(mock_event):
+    riders = mock_event.get_riders(surname='McCraken', given_name='Phil')
+    assert type(riders[0]) == c4h.C4HRider
+    riders = mock_event.get_riders(surname='Down', given_name='Bob')
+    assert type(riders[0]) == c4h.C4HRider
+    assert len(riders) == 1
+    assert not mock_event.get_riders(surname='McCraken', given_name='Bob')
+    assert not mock_event.get_riders(surname='Down', given_name='Phil')
 
-# def test_C4HEvent_new_horse(mock_event):
-#     name = "Heffalump"
-#     ea_number = '12345678'
-#     new_horse = mock_event.new_horse(name)
-#     assert type(new_horse) == c4h.C4HHorse
+def test_C4HEvent_get_horses(mock_event):
+    horses = mock_event.get_horses(name='Topless')
+    assert len(horses) == 1
+    assert type(horses[0]) == c4h.C4HHorse
+    horses = mock_event.get_horses(ea_number='12345678')
+    assert len(horses) == 1
+    assert type(horses[0]) == c4h.C4HHorse
+    assert not mock_event.get_horses(ea_number='12345679')
+
+
+def test_C4HEvent_new_horse(mock_event):
+    name = "Heffalump"
+    new_horse = mock_event.new_horse(name)
+    assert type(new_horse) == c4h.C4HHorse
     
-#     with pytest.raises(ValueError) as e:
-#         mock_event.new_horse(name)
-#     assert str(e.value) == "Horse Heffalump already exists"
-
-#     # test with an incorrect number of ea digits
-#     name = 'Suitable Boy'
-#     ea_number = '1234567'
-#     with pytest.raises(ValueError) as e:
-#         new_horse = mock_event.new_horse(name)
-#         new_horse.ea_number = ea_number
-#     assert str(e.value) == "Horse EA number should be a number 8 digits long"
-
-# def test_C4HEvent_get_horse(mock_event):
-#     horse = mock_event.get_horse('Pal')
-#     assert type(horse) == c4h.C4HHorse
+    with pytest.raises(ValueError) as e:
+        mock_event.new_horse(name)
+    assert str(e.value) == "Horse Heffalump already exists"
 
 # def test_C4HEvent_new_combo(mock_event):
 #     initial_len_combo_list = len(mock_event.combos)
