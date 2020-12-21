@@ -17,12 +17,12 @@ def mock_event():
     # # create a class that is not allocated to an arena
     # arena2.new_jumpclass()
     # #create a test rider horse combination
-    # id = '1'
+    id = '1'
     horse = mock_event.new_horse('Topless')
     horse.ea_number = '12345678'
     rider = mock_event.new_rider(given_name='Phil', surname='McCraken')
     rider = mock_event.new_rider(given_name='Bob', surname='Down')
-    # combo1 = mock_event.new_combo(id, rider, horse)
+    combo1 = mock_event.new_combo(rider, horse, id=id)
     # # class1.combos.append(combo1)
     
     return mock_event
@@ -105,29 +105,34 @@ def test_C4HEvent_new_horse(mock_event):
         mock_event.new_horse(name)
     assert str(e.value) == "Horse Heffalump already exists"
 
-# def test_C4HEvent_new_combo(mock_event):
-#     initial_len_combo_list = len(mock_event.combos)
-#     horse = mock_event.new_horse('Topless')
-#     rider = mock_event.new_rider(('Gravity', 'Andy'))
-#     this_combo = mock_event.new_combo('2', rider, horse)
-#     assert type(this_combo) == c4h.C4HCombo
-#     assert len(mock_event.combos) - initial_len_combo_list == 1
+def test_C4HEvent_get_combo(mock_event):
+    combo = mock_event.get_combos(id='1')
+    assert type(combo[0]) == c4h.C4HCombo
+    assert type(combo[0].rider) == c4h.C4HRider
+    assert type(combo[0].horse) == c4h.C4HHorse
+    assert not mock_event.get_combos(id='666')
 
-# def test_C4HEvent_get_combo(mock_event):
-#     this_combo = mock_event.get_combo('1')
-#     assert type(this_combo) == c4h.C4HCombo
-#     assert type(this_combo.rider) == c4h.C4HRider
-#     assert type(this_combo.horse) == c4h.C4HHorse
-#     that_combo = mock_event.get_combo('666')
-#     assert that_combo is None
+def test_C4HEvent_new_combo(mock_event):
+    horse = mock_event.new_horse('Pal')
+    rider = mock_event.new_rider('Gravity', 'Andy')
+    combo = mock_event.new_combo(rider, horse)
+    assert type(combo) == c4h.C4HCombo
+
+    with pytest.raises(ValueError) as e:
+        mock_event.new_combo(rider, horse)
+    assert str(e.value) == "Combination Gravity, Andy: Pal already exists"
+
 
 # def test_C4HEvent_get_jumpclasses(mock_event):
 #     assert type(mock_event.get_jumpclasses()) == list
 #     assert type(mock_event.get_jumpclasses()[0]) == c4h.C4HJumpClass
 
+# JumpClass
+# -------------------------------------------------------------
 
-# # # Arena
-# # # -------------------------------------------------------------
+
+# Arena
+# -------------------------------------------------------------
 # def test_C4HArena_new_jumpclass(mock_event):
 #     assert type(mock_event.arenas[0].new_jumpclass()) == c4h.C4HJumpClass
 
@@ -136,15 +141,6 @@ def test_C4HEvent_new_horse(mock_event):
 #     assert mock_event.arenas[0].get_jumpclass('99') == False
 
 
-# # # JumpClass
-# # # -------------------------------------------------------------
-# def test_C4HJumpClass_get_combo(mock_event):
-#     this_combo = mock_event.get_combo('1')
-#     assert type(this_combo) == c4h.C4HCombo
-#     assert type(this_combo.rider) == c4h.C4HRider
-#     assert type(this_combo.horse) == c4h.C4HHorse
-#     that_combo = mock_event.get_combo('666')
-#     assert that_combo is None
 
 # # # Article
 # # # -------------------------------------------------------------
