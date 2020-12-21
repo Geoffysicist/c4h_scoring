@@ -15,56 +15,46 @@ class C4HEvent(object):
     '''Equestrian Event.
 
     Attributes:
-        name (string): the event name
-        filename (str): the name of the event file. None for unsaved events
-        arenas (list): C4HArena objects
-        jumpclasses (list): C4HJumpClass objects - now arenas
-        riders (list): C4HRider objects
-        horses (list): C4HHorse objects
-        combos (list): C4HCombos rider, horse, id
-        details (string): other information about the event
-        dates (list): list of dates for the event
-        indent (string): indent to use in yaml like output files. Default is 2 spaces
-        # changed (bool): indicates whether the event has been changed since last save
+        name (str): the event name
+        details (str): other information about the event
+        dates (list[date]): start and finish dates for the event
+        arenas (list[_C4HArena]):
+        jumpclasses (list[_C4HJumpClass]):
+        riders (list[_C4HRider]):
+        horses (list[_C4HHorse]):
+        combos (list[_C4HCombo]):
+        judges (list[_C4HJudge]):
+        cds (list[C4HCD])
+        rounds (list[C4HRound]):
         last_save (datetime): UTC date & time the event was last saved
         last_change (datetime): UTC date and time of last change in any data
-        # timezone (timeezone): best to leave as UTC if storing on servers etc
+        filename (str): the name of the event file. None for unsaved events
     '''
 
     def __init__(self, event_name):
         self.name = event_name
-        self.filename = None
+        self.details = ''
+        self.dates = [date.today(),date.today()]
         self.arenas = []
         self.riders = []
         self.horses = []
         self.combos = []
-        self.details = ''
-        self.dates = [date.today(),date.today()]
+        self.judges = []
+        self.cds = []
+        self.jumpclasses = []
+        self.rounds = []
         self.last_save = datetime(1984,4,4, 13, tzinfo=timezone.utc)
         self.last_change = datetime.now(timezone.utc)
+        self.filename = None
 
         # add default arena
-        self.new_arena('1','Arena 1')
+        self.new_arena('1')
 
     def update(self):
         self.last_change = datetime.now(timezone.utc)
         return self.last_change
 
-    # def check_unique_id(self, id, list_):
-    #     """Checks ids of objects in list_ to see if id is unique.
-
-    #     the list must be objects that have an attribute 'id'
-
-    #     Args:
-    #         id (str): the id to check
-    #         list_ (list): objects with an 'id' attribute
-        
-    #     Returns:
-    #         True or False
-    #     """
-    #     return id not in [obj.id for obj in list_]
-
-    def new_arena(self, arena_id, name):
+    def new_arena(self, arena_id, name=''):
         '''creates a new arena and appends it to the arena list.
 
         Args:
@@ -72,12 +62,12 @@ class C4HEvent(object):
             name (string):
 
         Returns:
-            C4HArena
+            _C4HArena
         '''
         if self.get_arenas(id=arena_id):
             raise ValueError(f'Arena with id {arena_id} already exists')
         
-        a = C4HArena(arena_id, name)
+        a = _C4HArena(arena_id, name)
         self.arenas.append(a)
         self.update()
 
@@ -91,7 +81,7 @@ class C4HEvent(object):
             name (string): 
 
         Returns:
-            list[C4HArena] list empty if no matches.
+            list[_C4HArena] list empty if no matches.
             List contains all arenas if no kwargs
         '''
         arenas = self.arenas
@@ -113,13 +103,13 @@ class C4HEvent(object):
             # ea_number (string): length must be 7 digits
 
         Returns:
-            C4HRider
+            _C4HRider
         '''
 
         if self.get_riders(surname=surname, given_name=given_name):
             raise ValueError(f"Rider {surname} {given_name} already exists")
 
-        r = C4HRider(surname=surname, given_name=given_name)
+        r = _C4HRider(surname=surname, given_name=given_name)
         self.riders.append(r)
         self.update()
 
@@ -134,7 +124,7 @@ class C4HEvent(object):
             ea_number (string):
 
         Returns:
-            list[C4HRider] list empty if no matches.
+            list[_C4HRider] list empty if no matches.
             List contains all riders if no kwargs
         '''
         riders = self.riders
@@ -151,12 +141,12 @@ class C4HEvent(object):
             ea_number (int): length must be 8 digits
 
         Returns:
-            C4HHorse
+            _C4HHorse
         '''
         if self.get_horses(name=name):
             raise ValueError(f"Horse {name} already exists")
 
-        h = C4HHorse(name)
+        h = _C4HHorse(name)
         self.horses.append(h)
         self.update()
 
@@ -170,7 +160,7 @@ class C4HEvent(object):
             ea_number (string):
 
         Returns:
-            list[C4HHorse] list empty if no matches.
+            list[_C4HHorse] list empty if no matches.
             List contains all horses if no kwargs
         '''
         horses = self.horses
@@ -183,12 +173,12 @@ class C4HEvent(object):
         '''creates a new combination and appends it to the combo list.
 
         Args:
-            rider (C4HRider): 
-            horse (C4HHorse):
+            rider (_C4HRider): 
+            horse (_C4HHorse):
             id (str):
         
         Returns:
-            C4HCombo
+            _C4HCombo
         '''
         if self.get_combos(rider=rider, horse=horse):
             raise ValueError(
@@ -196,7 +186,7 @@ class C4HEvent(object):
                 f"{horse.name} already exists"
             )
 
-        c = C4HCombo(rider, horse, id)
+        c = _C4HCombo(rider, horse, id)
         self.combos.append(c)
         self.update()
 
@@ -210,7 +200,7 @@ class C4HEvent(object):
             ea_number (string):
 
         Returns:
-            list[C4HHorse] list empty if no matches.
+            list[_C4HHorse] list empty if no matches.
             List contains all horses if no kwargs
         '''
         combos = self.combos
@@ -218,12 +208,28 @@ class C4HEvent(object):
             combos = [c for c in combos if getattr(c,key) == val]
         
         return combos
+    
+    def new_judge(self):
+        pass
 
-    # def get_jumpclasses(self):
+    def get_judges(self):
+        pass
+
+    def new_cd(self):
+        pass
+
+    def get_cds(self):
+        pass
+
+    def new_jumpclass(self):
+        pass
+
+    def get_jumpclasses(self):
+        pass
     #     '''Find jumpclass matching kwargs.
 
     #     keyword args:
-    #         arena (C4HArena):
+    #         arena (_C4HArena):
     #         article (C4HArticle):
     #         cd (C4Hcd):
     #         description (str):
@@ -236,7 +242,7 @@ class C4HEvent(object):
     #         jumpoffs (int):
 
     #     Returns:
-    #         list[C4HJumpClass] list empty if no matches.
+    #         list[_C4HJumpClass] list empty if no matches.
     #     '''
     #     # jclasses = self.jumpclasses
     #     # for key, val in kwargs.items():
@@ -244,6 +250,12 @@ class C4HEvent(object):
     #     jclasses = []
     #     jclasses.extend([a.get_jumpclasses(**kwargs) for a in self.arenas])
     #     return jclasses
+
+    def new_round(self):
+        pass
+
+    def get_rounds(self):
+        pass
 
     def event_save(self):
         """Dumps the event to a yaml like file."""
@@ -271,14 +283,15 @@ class C4HEvent(object):
         # user may have changed the filename so...
         new_event.filename = fn
         return new_event
+
 @dataclass
-class C4HJumpClass(object):
+class _C4HJumpClass(object):
     '''A show jumping class.
 
     Attributes:
         id (str): an integer that may have a character appended eg. 8c 
         name (string):
-        arena (C4HArena):
+        arena (_C4HArena):
         _ID (uuid): unique identifier
         description (string):
         article (EAArticle):
@@ -286,7 +299,7 @@ class C4HJumpClass(object):
         judge (string): judges name
         cd (string): course designer name
         places (int): the number of places awarded prizes
-        rounds (list[C4HRound]): rounds entered in this arenas
+        rounds (list[_C4HRound]): rounds entered in this arenas
     '''
     def __init__(self, id, arena):
 
@@ -304,7 +317,7 @@ class C4HJumpClass(object):
         self.rounds= []
 
 @dataclass
-class C4HArena(object):
+class _C4HArena(object):
     '''An arena in the event which holds jumpclasses.
 
     Attributes:
@@ -317,45 +330,14 @@ class C4HArena(object):
 
     id: str
     name: str
-    jumpclasses: list[C4HJumpClass] = field(default_factory=list)
     _ID: int = uuid.uuid1()
 
-    def new_jumpclass(self):
-        '''creates a new jumpclass if it doesn't exist.
+    def __post_init__(self):
+        if not self.name: self.name = f'Arena {self.id}'
 
-        checks to see if a class with name class_id exists
-        if it exists a valueerror is raised
-        if not a new class is created and added to the class list then returned
-
-        Args:
-
-        Raises:
-            ValueError: if a class with that class_id already exists
-        '''
-
-        j = C4HJumpClass(self)
-        self.jumpclasses.append(j)
-        return j
-
-    def get_jumpclass(self, class_id):
-        '''returns the class with class_id.
-
-        Args:
-            class_id (string): the name of the class to find
-
-        Returns:
-            C4HJumpclass or False if not found
-        '''
-        this_class = False
-        
-        for j in self.jumpclasses:
-            if j.id == class_id:
-                this_class = j
-        
-        return this_class
     
 @dataclass
-class C4HRider(object):
+class _C4HRider(object):
     '''Rider details.
 
     Attributes:
@@ -381,7 +363,7 @@ class C4HRider(object):
         return self._ea_number
 
 @dataclass
-class C4HHorse(object):
+class _C4HHorse(object):
     '''Horse details.
 
     Attributes:
@@ -407,28 +389,28 @@ class C4HHorse(object):
         return self._ea_number
 
 @dataclass
-class C4HCombo(object):
+class _C4HCombo(object):
     '''Rider/horse combinations.
 
     Attributes:
         id (int): unique id for combination
-        rider (C4HRider):
-        horse (C4HHorse):
+        rider (_C4HRider):
+        horse (_C4HHorse):
     '''
 
     # def __init__(self, rider, horse, id):
-    rider: C4HRider
-    horse: C4HHorse
+    rider: _C4HRider
+    horse: _C4HHorse
     id: str
     _ID: uuid.uuid1 = uuid.uuid1()
 
-class C4HRound(object):
+class _C4HRound(object):
     '''Jump round and results.
 
     Attributes:
-        jumpclass (C4HJumpClass):
+        jumpclass (_C4HJumpClass):
         round_type (str): identifies whether a round or jumpoff - r1, r2, jo1, jo2 etc
-        combo (C4HCombo):
+        combo (_C4HCombo):
         faults (list): Jump numbers followed by one or more letters indicating the fault type.
             rail: r, disobedience: d, displacement/knockdown: k, fall: f, elimination: e
         jump_pens (int):
