@@ -245,34 +245,6 @@ class C4HEvent(object):
     #     jclasses.extend([a.get_jumpclasses(**kwargs) for a in self.arenas])
     #     return jclasses
 
-    # def new_combo(self, id, rider=None, horse=None):
-    #     '''creates a new rider and appends it to the _combos list.
-
-    #     Args:
-    #         id (str): unique id usually an entry number
-    #         rider (C4HRider):
-    #         horse(C4HHorse)
-
-    #     Returns:
-    #         C4HCombo
-    #     '''
-    #     for c in self.combos:
-    #         if c.id == id:
-    #             raise ValueError(f"Combo ID {id} already exists")
-
-    #     c = C4HCombo(id, rider, horse)
-    #     self.combos.append(c)
-    #     self.update()
-    #     return c
-
-    # def get_combo(self, id):
-    #     '''returns the C4HCombo with id == id else None if it doesn't exist.
-    #     '''
-    #     for c in self.combos:
-    #         if c.id == id: return c
-
-    #     return None
-
     def event_save(self):
         """Dumps the event to a yaml like file."""
         # timestamp first so timestamp gets saved
