@@ -1,0 +1,33 @@
+--- # Three Arena Two Day Event C4HScore
+&id001 !!python/object:c4h_score.C4HEvent
+arenas:
+- !!python/object:c4h_score.C4HArena
+  _ID: 1
+  event: *id001
+  id: '1'
+  jumpclasses: []
+  name: Big Arena
+- !!python/object:c4h_score.C4HArena
+  _ID: 2
+  event: *id001
+  id: '2'
+  jumpclasses: []
+  name: Also Ran Arena
+- !!python/object:c4h_score.C4HArena
+  _ID: 3
+  event: *id001
+  id: '3'
+  jumpclasses: []
+  name: Cash Cow Arena
+combos: []
+dates:
+- 2020-12-11
+- 2020-12-12
+details: ''
+filename: C:/Users/Geoffysicist/Projects/Courses4Horses/_dev/3 Arena 2 Day event.c4hs
+horses: []
+indent: '  '
+last_change: 2020-12-10 11:30:56.940878+00:00
+last_save: 2020-12-14 06:04:41.642599+00:00
+name: Three Arena Two Day Event
+riders: []

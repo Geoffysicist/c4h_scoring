@@ -4,8 +4,12 @@
 import json
 import yaml
 import csv
+import uuid
 
 from datetime import date, datetime, timezone
+from dataclasses import dataclass, field
+
+INDENT = '  ' #indent used for output
 
 class C4HEvent(object):
     '''Equestrian Event.
@@ -31,110 +35,115 @@ class C4HEvent(object):
         self.name = event_name
         self.filename = None
         self.arenas = []
-        # self.jumpclasses = []
         self.riders = []
         self.horses = []
         self.combos = []
         self.details = ''
         self.dates = [date.today(),date.today()]
-        self.indent = '  '
-        # self.timezone = timezone.utc
         self.last_save = datetime(1984,4,4, 13, tzinfo=timezone.utc)
         self.last_change = datetime.now(timezone.utc)
-        # self.changed = True
 
         # add default arena
         self.new_arena('1','Arena 1')
 
     def update(self):
         self.last_change = datetime.now(timezone.utc)
+        return self.last_change
+
+    # def check_unique_id(self, id, list_):
+    #     """Checks ids of objects in list_ to see if id is unique.
+
+    #     the list must be objects that have an attribute 'id'
+
+    #     Args:
+    #         id (str): the id to check
+    #         list_ (list): objects with an 'id' attribute
+        
+    #     Returns:
+    #         True or False
+    #     """
+    #     return id not in [obj.id for obj in list_]
 
     def new_arena(self, arena_id, name):
         '''creates a new arena and appends it to the arena list.
 
         Args:
-            arena_id (string): the name of the arena to check/create
+            arena_id (string):
             name (string):
 
         Returns:
             C4HArena
         '''
-        for a in self.arenas:
-            if a.id == arena_id:
-                raise ValueError(f"Arena with id {arena_id} already exists")
-
-        a = C4HArena(arena_id, name, self)
-
+        if self.get_arenas(id=arena_id):
+            raise ValueError(f'Arena with id {arena_id} already exists')
+        
+        a = C4HArena(arena_id, name)
         self.arenas.append(a)
         self.update()
 
         return a
 
-    def get_arena(self, arena_ID):
-        '''returns the arena with unique private arena _ID.
+    def get_arenas(self, **kwargs):
+        '''Find rider matching kwargs.
 
-        Args:
-            arena_ID (int):
-
-        Returns:
-            C4HArena or None if not found
-        '''
-        for a in self.arenas:
-            if a._ID == arena_ID:
-                return a
-        
-        return None        
-
-    def get_arena_by_public_id(self, arena_id):
-        '''returns the arena with public arena_id.
-
-        Args:
-            arena_id (str):
+        keyword args:
+            id (str): public id
+            name (string): 
 
         Returns:
-            C4HArena or None if not found
+            list[C4HArena] list empty if no matches.
+            List contains all arenas if no kwargs
         '''
-        for a in self.arenas:
-            if a.id == arena_id:
-                return a
+        arenas = self.arenas
+        for key, val in kwargs.items():
+            arenas = [a for a in arenas if getattr(a,key) == val]
         
-        return None        
-
-    def new_rider(self, surname=None, given_name=None, ea_number=None):
+        return arenas
+        
+    def new_rider(self, surname=None, given_name=None):
         '''creates a new rider and appends it to the rider list.
 
         It seems odd to initialise these attribures with None but I want
-        users to be able to enter some dataif they don't know all of it.
+        users to be able to enter some data if they don't know all of it.
         They may know the given name but not the surname or vice versa
 
         Args:
             surname (string): 
             given_name (string): 
-            ea_number (string): length must be 7 digits
+            # ea_number (string): length must be 7 digits
 
         Returns:
             C4HRider
         '''
-        for r in self.riders:
-            if ((r.surname == surname) and (r.given_name == given_name)):
-                raise ValueError(f"Rider {surname} {given_name} already exists")
 
-        r = C4HRider(surname=surname, given_name=given_name, ea_number=ea_number)
+        if self.get_riders(surname=surname, given_name=given_name):
+            raise ValueError(f"Rider {surname} {given_name} already exists")
+
+        r = C4HRider(surname=surname, given_name=given_name)
         self.riders.append(r)
         self.update()
 
         return r
       
-    def get_rider(self, surname, given_name):
-        '''returns the C4HRider matching surname and given_name else None if rider doesn't exist.
+    def get_riders(self, **kwargs):
+        '''Find rider matching kwargs.
+
+        keyword args:
+            surname (string)
+            given_name (string): 
+            ea_number (string):
+
+        Returns:
+            list[C4HRider] list empty if no matches.
+            List contains all riders if no kwargs
         '''
-        for r in self.riders:
-            if (r.surname == surname and r.given_name == given_name):
-                return r
+        riders = self.riders
+        for key, val in kwargs.items():
+            riders = [r for r in riders if getattr(r,key) == val]
+        
+        return riders
 
-        return None
-
-    def new_horse(self, name, ea_number=None):
+    def new_horse(self, name):
         '''creates a new horse and appends it to the _horses list.
 
         Args:
@@ -144,64 +153,97 @@ class C4HEvent(object):
         Returns:
             C4HHorse
         '''
-        for h in self.horses:
-            if h.name == name:
-                raise ValueError(f"Horse {name} already exists")
+        if self.get_horses(name=name):
+            raise ValueError(f"Horse {name} already exists")
 
-        h = C4HHorse(name, ea_number=ea_number)
+        h = C4HHorse(name)
         self.horses.append(h)
         self.update()
 
         return h
 
-    def get_horse(self, name):
-        '''returns the C4HHorse matching name else None if horse doesn't exist.
-        '''
-        for h in self.horses:
-            if (h.name == name):
-                return h
+    def get_horses(self, **kwargs):
+        '''Find horse matching kwargs.
 
-        return None
+        keyword args:
+            name (string):
+            ea_number (string):
 
-    def get_jumpclasses(self):
-        '''
         Returns:
-            list of C4HJumpClass objects
+            list[C4HHorse] list empty if no matches.
+            List contains all horses if no kwargs
         '''
-        jclasses = []
-        for a in self.arenas:
-            for j in a.jumpclasses:
-                jclasses.append(j)
+        horses = self.horses
+        for key, val in kwargs.items():
+            horses = [h for h in horses if getattr(h,key) == val]
         
-        return jclasses
+        return horses
 
-    def new_combo(self, id, rider=None, horse=None):
-        '''creates a new rider and appends it to the _combos list.
+    def new_combo(self, rider, horse, id=''):
+        '''creates a new combination and appends it to the combo list.
 
         Args:
-            id (str): unique id
-            rider (C4HRider):
-            horse(C4HHorse)
-
+            rider (C4HRider): 
+            horse (C4HHorse):
+            id (str):
+        
         Returns:
             C4HCombo
         '''
-        for c in self.combos:
-            if c.id == id:
-                raise ValueError(f"Combo ID {id} already exists")
+        if self.get_combos(rider=rider, horse=horse):
+            raise ValueError(
+                f"Combination {rider.surname}, {rider.given_name}: "
+                f"{horse.name} already exists"
+            )
 
-        c = C4HCombo(id, rider, horse)
+        c = C4HCombo(rider, horse, id)
         self.combos.append(c)
         self.update()
+
         return c
 
-    def get_combo(self, id):
-        '''returns the C4HCombo with id == id else None if it doesn't exist.
-        '''
-        for c in self.combos:
-            if c.id == id: return c
+    def get_combos(self, **kwargs):
+        '''Find horse matching kwargs.
 
-        return None
+        keyword args:
+            name (string):
+            ea_number (string):
+
+        Returns:
+            list[C4HHorse] list empty if no matches.
+            List contains all horses if no kwargs
+        '''
+        combos = self.combos
+        for key, val in kwargs.items():
+            combos = [c for c in combos if getattr(c,key) == val]
+        
+        return combos
+
+    # def get_jumpclasses(self):
+    #     '''Find jumpclass matching kwargs.
+
+    #     keyword args:
+    #         arena (C4HArena):
+    #         article (C4HArticle):
+    #         cd (C4Hcd):
+    #         description (str):
+    #         height (str):
+    #         id (str):
+    #         judge (C4HJudge):
+    #         name (str):
+    #         places(int):
+    #         rounds(int):
+    #         jumpoffs (int):
+
+    #     Returns:
+    #         list[C4HJumpClass] list empty if no matches.
+    #     '''
+    #     # jclasses = self.jumpclasses
+    #     # for key, val in kwargs.items():
+    #     #     jclasses = [jc for jc in jclasses if getattr(jc, key) == val]
+    #     jclasses = []
+    #     jclasses.extend([a.get_jumpclasses(**kwargs) for a in self.arenas])
+    #     return jclasses
 
     def event_save(self):
         """Dumps the event to a yaml like file."""
@@ -211,6 +253,7 @@ class C4HEvent(object):
         with open(self.filename, 'w') as out_file:
             out_file.write(f'--- # {self.name} C4HScore\n')
             yaml.dump(self, out_file)
+        
 
     def event_save_as(self, fn):       
         self.filename = fn
@@ -224,10 +267,43 @@ class C4HEvent(object):
         '''
         with open(fn, 'r') as in_file:
             new_event = yaml.load(in_file, Loader=yaml.FullLoader)
-            print(type(new_event))
 
+        # user may have changed the filename so...
+        new_event.filename = fn
         return new_event
-    
+@dataclass
+class C4HJumpClass(object):
+    '''A show jumping class.
+
+    Attributes:
+        id (str): an integer that may have a character appended eg. 8c 
+        name (string):
+        arena (C4HArena):
+        _ID (uuid): unique identifier
+        description (string):
+        article (EAArticle):
+        height (int): the height in cm
+        judge (string): judges name
+        cd (string): course designer name
+        places (int): the number of places awarded prizes
+        rounds (list[C4HRound]): rounds entered in this arenas
+    '''
+    def __init__(self, id, arena):
+
+        self._ID = uuid.UUID()
+        self.id = id
+        self.arena = arena
+        self.arena.jumpclasses.append(self)
+        self.name = f'Class {self.id}'
+        self.article = None
+        self.description = ''
+        self.height = 0
+        self.judge = ''
+        self.cd = ''
+        self.places = 6
+        self.rounds= []
+
+@dataclass
 class C4HArena(object):
     '''An arena in the event which holds jumpclasses.
 
@@ -235,21 +311,14 @@ class C4HArena(object):
         _ID (int): private id
         id (str): public id
         name (string):
-        event (C4HEvent): parent event
+        # event (C4HEvent): parent event
         jumpclasses (list):
     '''
 
-    def __init__(self, arena_id, name, event):
-        self.name = name
-        self.event = event
-        self.jumpclasses = []
-        self.id = arena_id
-        next_id = 1
-        for a in self.event.arenas:
-            if a._ID >= next_id:
-                next_id = next_id + 1
-
-        self._ID = next_id
+    id: str
+    name: str
+    jumpclasses: list[C4HJumpClass] = field(default_factory=list)
+    _ID: int = uuid.uuid1()
 
     def new_jumpclass(self):
         '''creates a new jumpclass if it doesn't exist.
@@ -259,13 +328,10 @@ class C4HArena(object):
         if not a new class is created and added to the class list then returned
 
         Args:
-            class_id (string): the id of the class to check/create
 
         Raises:
             ValueError: if a class with that class_id already exists
         '''
-
-        # TODO make sure unique id
 
         j = C4HJumpClass(self)
         self.jumpclasses.append(j)
@@ -288,90 +354,59 @@ class C4HArena(object):
         
         return this_class
     
-class C4HJumpClass(object):
-    '''A show jumping class.
-
-    Attributes:
-        _ID (int): unique identifier
-        id (str): an integer that may have a character appended eg. 8c 
-        name (string):
-        arena (C4HArena):
-        description (string):
-        article (EAArticle):
-        height (int): the height in cm
-        # times (list of ints): the times allowed for each phase
-        judge (string): judges name
-        cd (string): course designer name
-        places (int): the number of places awarded prizes
-        # combinations (list): list of the horse/rider combinations entered
-        rounds (list of C4HRounds): rounds entered in this arenas
-    '''
-
-    def __init__(self, arena):
-
-        self.arena = arena
-        self.arena.jumpclasses.append(self)
-        #getunique ID
-        self._ID = 0 #need a value here to avoid attribute error if first jumpclass
-        self._ID = max([jc._ID for jc in self.arena.event.get_jumpclasses()]) + 1
-        # self._ID = jc._ID +1 for jc in arena if self._ID < jc._ID
-        # for jc in arena.jumpclasses:
-        #     if self._ID <= jc._ID:
-        #         self._ID = jc._ID + 1
-        self.id = str(self._ID)
-        self.name = f'Class {self.id}'
-        self.article = None
-        self.description = ''
-        self.height = None
-        # self.times = []
-        self.judge = ''
-        self.cd = ''
-        self.places = 6
-        # self.combos = []
-        self.rounds= []
-
-    def get_combo(self, id):
-        '''returns the C4HCombo with id == id else None if it doesn't exist.
-        '''
-        for c in self.combos:
-            if c.id == id: return c
-
-        return None
-
+@dataclass
 class C4HRider(object):
     '''Rider details.
 
     Attributes:
         surname (string)
-        given_name (string): This must n digits
-        ea_number (int):
+        given_name (string): 
+        ea_number (string): This must 7 numerical digits
     '''
-    def __init__(self, surname, given_name, ea_number):
-        self.surname = surname
-        self.given_name = given_name
+    surname: str
+    given_name: str
+    _ea_number: str = ''
 
-        if ea_number:
-            if ea_number.isnumeric() and (len(ea_number) == 7):
-                self.ea_number = ea_number
-            else:
-                raise ValueError('Rider EA number should be a number 7 digits long')
+    @property
+    def ea_number(self):
+        return self._ea_number
 
+    @ea_number.setter
+    def ea_number(self, ea_number):
+        if ea_number.isnumeric() and (len(ea_number) == 7):
+            self._ea_number = ea_number
+        else:
+            raise ValueError('Rider EA number should be a number 7 digits long')
+        
+        return self._ea_number
+
+@dataclass
 class C4HHorse(object):
     '''Horse details.
 
     Attributes:
         name (string):
-        ea_number (int): this must be n digits
+        ea_number (string): this must be 8 numerical digits
     '''
-    def __init__(self, name, ea_number):
-        self.name = name
+    # def __init__(self, name, ea_number):
+    #     self.name = name
+    name: str
+    _ea_number: str = ''
 
-        if ea_number:
-            if ea_number.isnumeric() and (len(ea_number) == 8):
-                self.ea_number = ea_number
-            else:
-                raise ValueError('Rider EA number should be a number 8 digits long')
+    @property
+    def ea_number(self):
+        return self._ea_number
 
+    @ea_number.setter
+    def ea_number(self, ea_number):
+        if ea_number.isnumeric() and (len(ea_number) == 8):
+            self._ea_number = ea_number
+        else:
+            raise ValueError('Horse EA number should be a number 8 digits long')
+        
+        return self._ea_number
+
+@dataclass
 class C4HCombo(object):
     '''Rider/horse combinations.
 
@@ -379,13 +414,13 @@ class C4HCombo(object):
         id (int): unique id for combination
         rider (C4HRider):
         horse (C4HHorse):
-        rounds (C4HRound)
     '''
 
-    def __init__(self, id, rider, horse):
-        self.id = id
-        self.rider = rider
-        self.horse= horse
+    # def __init__(self, rider, horse, id):
+    rider: C4HRider
+    horse: C4HHorse
+    id: str
+    _ID: uuid.uuid1 = uuid.uuid1()
 
 class C4HRound(object):
     '''Jump round and results.
@@ -397,7 +432,7 @@ class C4HRound(object):
         faults (list): Jump numbers followed by one or more letters indicating the fault type.
             rail: r, disobedience: d, displacement/knockdown: k, fall: f, elimination: e
         jump_pens (int):
-        time (float): time in secs
+        time (float): time 0.01 secs
         time_pens (int):
         notes (str): optional notes from the judge
     '''
@@ -406,9 +441,9 @@ class C4HRound(object):
         self.round_type = round_type
         self.combo = combo
         self.faults = []
-        self.jump_pens = None
-        self.time = None
-        self.time_pens = None
+        self.jump_pens = 0
+        self.time = 0
+        self.time_pens = 0
         self.notes = ''
 
 class C4HArticle(object):
@@ -462,7 +497,6 @@ class C4HArticle(object):
         '''
         with open(fn, 'r') as in_file:
             new_event = yaml.load(in_file, Loader=yaml.FullLoader)
-            print(type(new_event))
 
         return new_event
     
@@ -515,7 +549,7 @@ class C4HArticle(object):
 
 if __name__ == "__main__":
     pass
-    #now the event stuff
+
 
 
 

@@ -1,11 +1,13 @@
 """c4h_score_gui.py - GUI for C4HScore, a scoreboard for judging showjumping.
 """
 
-from c4h_score import C4HEvent
 import tkinter as tk
 import tkcalendar as cal
 import ctypes
+# import c4h_score
 
+# from c4h_score import C4HEvent
+from .score import C4HEvent
 from tkinter import ttk, filedialog, messagebox
 from datetime import date
 
@@ -57,7 +59,7 @@ class C4HScoreGUI(ttk.Notebook):
         # the class menu
         self.jumpclassmenu = tk.Menu(self.menubar, tearoff=0)
         self.jumpclassmenu.add_command(label="New", command=self.jumpclass_new)
-        self.jumpclassmenu.add_command(label="Open", command=self.jumpclass_open)
+        # self.jumpclassmenu.add_command(label="Open", command=self.jumpclass_open)
         self.jumpclassmenu.add_command(label="Edit", command=self.jumpclass_edit)
         self.menubar.add_cascade(label="Class", menu=self.jumpclassmenu)
 
@@ -89,8 +91,7 @@ class C4HScoreGUI(ttk.Notebook):
                 self.jumpclassmenu.entryconfig("Edit", state="normal")
 
     def event_new(self):
-        ''' Opens a new event dialog.
-        '''
+        """Opens a new event dialog."""
         if self.event_check_saved() == 'cancelled': return
 
         self.event = C4HEvent('New Event')
@@ -111,15 +112,17 @@ class C4HScoreGUI(ttk.Notebook):
         #if cancel button wasn't clicked
         if fn:
             # if no event yet need to create one
+            # TODO better to do this with a class level method
             if not self.event:
-                self.event = C4HEvent('Temp Event')
+                self.event = C4HEvent('_')
             
             self.event = self.event.event_open(fn)
 
             self.update()
 
     def event_edit(self):
-        # C4HEventDialog(self.master, self.event)
+        '''Opens a C4HEventDialog for editing event details.'''
+        
         C4HEventDialog(self)
 
     def event_save(self):
@@ -174,17 +177,24 @@ class C4HScoreGUI(ttk.Notebook):
                     return 'cancelled'
 
     def jumpclass_new(self):
-        # need to ensure a unique ID
+        """Create a new jumpclass and open the jumpclass editor."""
+        #TODO need to ensure a unique ID
         jumpclass = self.event.arenas[0].new_jumpclass()
-        jc_tab = C4HJumpClassTab(self, jumpclass)
-        self.add(jc_tab, text=jumpclass.name)
+        self.jumpclass_edit(jumpclass)
 
+    def jumpclass_edit(self, jumpclass=None):
+        """Open the jumpclass editor and set selection to jumpclass.
         
-    def jumpclass_open(self):
-        print('class_open stub')
+        If no lumpclass is passed the selection is set to jumpclass1 in arena1
 
-    def jumpclass_edit(self):
-        print('class_edit stub')
+        Args:
+            jumpclass (C4HJumpclass): Default is None.
+        """
+        if not jumpclass:
+            jumpclass = self.event.get_jumpclasses()[0]
+        # jumpclass_tab = C4HJumpClassTab(self, jumpclass)
+        # self.add(jumpclass_tab, text=jumpclass.name)
+        C4HJumpClassTab(self, jumpclass)
 
 class C4HEventDialog(tk.Toplevel):
     '''A top level dialog for editing event details.
@@ -303,7 +313,7 @@ class C4HEventDialog(tk.Toplevel):
     def set_event(self):
         self.event.name = self.event_name.get()
         self.event.dates = [self.start_picker.get_date(),self.end_picker.get_date()]
-        # self.event.arenas = []
+        self.event.arenas = []
         for a in self.arenas:
             this_arena = self.event.get_arena(a[0])
             if this_arena: #arena already exists
@@ -316,7 +326,8 @@ class C4HEventDialog(tk.Toplevel):
         self.master.update()
         self.destroy()
 
-class C4HJumpClassTab(ttk.Frame):
+# class C4HJumpClassTab(ttk.Frame):
+class C4HJumpClassTab(tk.Toplevel):
     '''Frame for holding jump class details.
     '''
 
@@ -331,79 +342,111 @@ class C4HJumpClassTab(ttk.Frame):
         self.master = master
 
         # set up all the tk string variables
-        self.jc_id = tk.StringVar(self, f'{self.jumpclass.id}')
-        self.jc_name = tk.StringVar(self, f'{self.jumpclass.name}')
+        self.jumpclass_id = tk.StringVar(self, f'{self.jumpclass.id}')
+        self.jumpclass_name = tk.StringVar(self, f'{self.jumpclass.name}')
         self.article = tk.StringVar(self, f'{self.jumpclass.article}')
         self.arena_id = tk.StringVar(self, f'{self.jumpclass.arena.id}')
-        self.jc_description = tk.StringVar(self, f'{self.jumpclass.description}')
-        self.jc_height = tk.IntVar(self)
-        self.jc_judge = tk.StringVar(self, f'{self.jumpclass.judge}')
-        self.jc_cd = tk.StringVar(self, f'{self.jumpclass.cd}')
-        self.jc_places = tk.IntVar(self, self.jumpclass.places)
+        self.jumpclass_description = tk.StringVar(self, f'{self.jumpclass.description}')
+        self.jumpclass_height = tk.IntVar(self, f'{self.jumpclass.height}')
+        self.jumpclass_judge = tk.StringVar(self, f'{self.jumpclass.judge}')
+        self.jumpclass_cd = tk.StringVar(self, f'{self.jumpclass.cd}')
+        self.jumpclass_places = tk.IntVar(self, self.jumpclass.places)
 
         # set up the corresponding widgets
-        jc_id_lbl = ttk.Label(self, text='Class ID: ')
-        jc_id_entry = ttk.Entry(self, textvariable=self.jc_id)
-        jc_name_lbl = ttk.Label(self, text='Class Name: ')
-        jc_name_entry = ttk.Entry(self, textvariable=self.jc_name)
+        jumpclass_id_lbl = ttk.Label(self, text='Class ID: ')
+        self.jumpclass_id_entry = ttk.Combobox(self, textvariable=self.jumpclass_id)
+        jumpclass_name_lbl = ttk.Label(self, text='Class Name: ')
+        jumpclass_name_entry = ttk.Entry(self, textvariable=self.jumpclass_name)
         arena_id_lbl = ttk.Label(self, text='Arena ID: ')
         self.arena_id_entry = ttk.Combobox(self, textvariable=self.arena_id)
-        jc_description_lbl = ttk.Label(self, text='Description: ')
-        jc_description_entry = ttk.Entry(self, textvariable=self.jc_description)
-        jc_height_lbl = ttk.Label(self, text='Height (cm)')
-        jc_height_entry = ttk.Entry(self, textvariable=self.jc_height)
-        jc_judge_lbl = ttk.Label(self, text='Judge: ')
-        jc_judge_entry = ttk.Entry(self, textvariable=self.jc_judge)
-        jc_cd_lbl = ttk.Label(self, text='Course Designer: ')
-        jc_cd_entry = ttk.Entry(self, textvariable=self.jc_cd)
-        jc_places_lbl = ttk.Label(self, text='Places')
-        jc_places_entry = ttk.Entry(self, textvariable=self.jc_places)
-        save_btn = ttk.Button(self, text='Save', default='active', command=self.jumpclass_save)
+        jumpclass_description_lbl = ttk.Label(self, text='Description: ')
+        jumpclass_description_entry = ttk.Entry(self, textvariable=self.jumpclass_description)
+        jumpclass_height_lbl = ttk.Label(self, text='Height (cm)')
+        jumpclass_height_entry = ttk.Entry(self, textvariable=self.jumpclass_height)
+        jumpclass_judge_lbl = ttk.Label(self, text='Judge: ')
+        jumpclass_judge_entry = ttk.Entry(self, textvariable=self.jumpclass_judge)
+        jumpclass_cd_lbl = ttk.Label(self, text='Course Designer: ')
+        jumpclass_cd_entry = ttk.Entry(self, textvariable=self.jumpclass_cd)
+        jumpclass_places_lbl = ttk.Label(self, text='Places')
+        jumpclass_places_entry = ttk.Entry(self, textvariable=self.jumpclass_places)
+        done_btn = ttk.Button(self, text='Done', default='active', command=self.set_jumpclass)
+        cancel_btn = ttk.Button(self, text='Cancel', command=self.destroy)
 
-        # arena_id_entry = ttk.Combobox(self,
-        #     textvariable=self.arena_id, values=arena_ids)
- 
-        # grid it up
-        jc_id_lbl.grid(row=1, column=1)
-        jc_id_entry.grid(row=1, column=2)
-        arena_id_lbl.grid(row=1, column=3)
-        self.arena_id_entry.grid(row=1, column=4)
-        jc_name_lbl.grid(row=2, column=1)
-        jc_name_entry.grid(row=2, column=2, columnspan=3, sticky='EW')
-        jc_description_lbl.grid(row=3, column=1)
-        jc_description_entry.grid(row=3, column=2, columnspan=3, sticky='EW')
-        jc_height_lbl.grid(row=4, column=1)
-        jc_height_entry.grid(row=4, column=2)
-        jc_places_lbl.grid(row=4, column=3)
-        jc_places_entry.grid(row=4, column=4)
-        jc_judge_lbl.grid(row=5, column=1)
-        jc_judge_entry.grid(row=5, column=2)
-        jc_cd_lbl.grid(row=5, column=3)
-        jc_cd_entry.grid(row=5, column=4)
-        save_btn.grid(row=6, column=2)
-
-        self.bind('<FocusIn>', self.update)
-        # self.update()
-
-    def update(self, *args):
+        #set the combo boxes
         arena_ids = [a.id for a in self.master.event.arenas]
         self.arena_id_entry.configure(values=arena_ids)
+        jumpclass_ids = [j.id for j in self.master.event.get_jumpclasses()]
+        self.jumpclass_id_entry.configure(values=jumpclass_ids)
+        self.jumpclass_id_entry.bind("<<ComboboxSelected>>", self.jumpclass_selected)
 
-    def jumpclass_save(self):
+        # grid it up
+        jumpclass_id_lbl.grid(row=1, column=1)
+        self.jumpclass_id_entry.grid(row=1, column=2)
+        arena_id_lbl.grid(row=1, column=3)
+        self.arena_id_entry.grid(row=1, column=4)
+        jumpclass_name_lbl.grid(row=2, column=1)
+        jumpclass_name_entry.grid(row=2, column=2, columnspan=3, sticky='EW')
+        jumpclass_description_lbl.grid(row=3, column=1)
+        jumpclass_description_entry.grid(row=3, column=2, columnspan=3, sticky='EW')
+        jumpclass_height_lbl.grid(row=4, column=1)
+        jumpclass_height_entry.grid(row=4, column=2)
+        jumpclass_places_lbl.grid(row=4, column=3)
+        jumpclass_places_entry.grid(row=4, column=4)
+        jumpclass_judge_lbl.grid(row=5, column=1)
+        jumpclass_judge_entry.grid(row=5, column=2)
+        jumpclass_cd_lbl.grid(row=5, column=3)
+        jumpclass_cd_entry.grid(row=5, column=4)
+        done_btn.grid(row=6, column=2)
+        cancel_btn.grid(row=6, column=3)
+
+        # self.bind('<FocusIn>', self.update)
+        # self.update()
+
+    def update(self):
+        self.jumpclass_id.set(self.jumpclass.id)
+        self.jumpclass_name.set(self.jumpclass.name)
+        self.article.set(self.jumpclass.article)
+        self.arena_id.set(self.jumpclass.arena.id)
+        self.jumpclass_description.set(self.jumpclass.description)
+        self.jumpclass_height.set(self.jumpclass.height)
+        self.jumpclass_judge.set(self.jumpclass.judge)
+        self.jumpclass_cd.set(self.jumpclass.cd)
+        self.jumpclass_places.set(self.jumpclass.places)
+
+    def jumpclass_selected(self, eventObject):
+        '''Upates dialog field after selection made in jumpclass combo box.
+        '''
+        for j in self.master.event.get_jumpclasses():
+            if j.id == self.jumpclass_id.get():
+                self.jumpclass = j
+                
+
+        self.update()
+
+
+        # arena_ids = [a.id for a in self.master.event.arenas]
+        # self.arena_id_entry.configure(values=arena_ids)
+        # jumpclass_ids = [j.id for j in self.master.event.get_jumpclasses()]
+        # self.jumpclass_id_entry.configure(values=jumpclass_ids)
+
+    def set_jumpclass(self):
         self.jumpclass.arena = self.master.event.get_arena_by_public_id(
             self.arena_id.get()
         )
 
         for key, attribute in vars(self.jumpclass).items():
             for dlg_key, dlg_val in vars(self).items():
-                if f'jc_{key}' == dlg_key:
+                
+                if f'jumpclass_{key}' == dlg_key:
                     self.jumpclass.__setattr__(key, dlg_val.get())
-
                     
-
-        for key, attribute in vars(self.jumpclass).items():
-            print(f'{key}: {attribute}')
+                    
         
+        self.update()
+        self.master.update()
+        self.master.event.update()
+        self.destroy()
+
 
             
 
