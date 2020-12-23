@@ -11,6 +11,7 @@ def mock_event():
     mock_event = c4h.C4HEvent('Baccabuggry World Cup')
     rider = mock_event.new_rider(given_name='Bob', surname='Down')
     horse = mock_event.new_horse(name='Topless')
+    combo = mock_event.new_combo(rider, horse)
     
     return mock_event
 
@@ -49,10 +50,29 @@ def test_C4HEvent_set_object(mock_event):
    
     #C4HHorse
     with pytest.raises(ValueError) as e:
-        mock_event.set_object(mock_event.horses[0],ea_number='1234567')
-    assert str(e.value) == "Horse EA number should be 8 not 7 digits long"
+        number = '1234567'
+        mock_event.set_object(mock_event.horses[0],ea_number=number)
+    assert str(e.value) == f"Horse EA number should be 8 not {len(number)} digits long"
     assert mock_event.set_object(mock_event.horses[0],ea_number='12345678')
+    with pytest.raises(ValueError) as e:
+        name = mock_event.horses[0].name
+        mock_event.set_object(mock_event.horses[0],name=name)
+    assert str(e.value) == f"Horse {name} already exists"
 
+    #C4HCombo
+    # test id
+    # rider defined above
+    horse = mock_event.horses[-1]
+    combo = mock_event.new_combo(rider, horse)
+    id = '42'
+    assert mock_event.set_object(combo, id=id)
+    with pytest.raises(ValueError) as e:
+        mock_event.set_object(combo, id=id)
+    assert str(e.value) == f"Combo with id {id} already exists"
+    with pytest.raises(ValueError) as e:
+        mock_event.set_object(mock_event.combos[0], rider=rider, horse=horse)
+    assert str(e.value) == f'Combo: {rider.surname} {rider.given_name} riding {horse.name} already exists'
+    
 def test_C4HEvent_get_objects(mock_event):
     """Test the get objects method for each C4HScore dataclass.
 
@@ -72,7 +92,7 @@ def test_C4HEvent_get_objects(mock_event):
         )
 
 def test_C4HEvent_merge_objects(mock_event):
-    pass
+    pass # TODO
 
 def test_C4HEvent_new_arena(mock_event):
     arena = mock_event.new_arena('2')
@@ -90,14 +110,10 @@ def test_C4HEvent_new_rider(mock_event):
 def test_C4HEvent_new_horse(mock_event):
     name = "Heffalump"
     assert type(mock_event.new_horse(name=name)) == c4h._C4HHorse
-    
-    with pytest.raises(ValueError) as e:
-        mock_event.new_horse(name=name)
-    assert str(e.value) == f"Horse {name} already exists"
 
 def test_C4HEvent_new_combo(mock_event):
-    rider = mock_event.riders[0]
-    horse = mock_event.horses[0]
+    rider = mock_event.new_rider(given_name='Andy', surname='Gravity')
+    horse = mock_event.new_horse(name='Heffalump')
     assert type(mock_event.new_combo(rider, horse)) == c4h._C4HCombo
 
     with pytest.raises(ValueError) as e:

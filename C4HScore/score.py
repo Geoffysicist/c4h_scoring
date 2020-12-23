@@ -2,6 +2,7 @@
 """
 
 import json
+from typing import Any
 import yaml
 import csv
 import uuid
@@ -78,7 +79,7 @@ class C4HEvent(object):
         return objects
 
     def merge_objects(self, obj1, obj2):
-        #TODO
+        # TODO
         pass
 
     def new_arena(self, id):
@@ -145,9 +146,10 @@ class C4HEvent(object):
         Returns:
             _C4HCombo
         '''
-        c = _C4HCombo(rider, horse)
-        self.set_object(c, **kwargs)
+        c = _C4HCombo(self, rider, horse)
         self.combos.append(c)
+        self.set_object(c, rider=rider, horse=horse)
+        self.set_object(c, **kwargs)
         self.update()
 
         return c
@@ -398,17 +400,57 @@ class _C4HCombo(object):
 
     Attributes:
         id (int): unique id for combination
+        _ID (uuid.UUID):
         rider (_C4HRider):
         horse (_C4HHorse):
     '''
 
-    # def __init__(self, rider, horse, id):
-    rider: _C4HRider
-    horse: _C4HHorse
-    id: str = ''
-    _ID: uuid.uuid1 = uuid.uuid1()
+    event: C4HEvent
+    _rider: _C4HRider
+    _horse: _C4HHorse
+    _id: str = ''
+    _ID: uuid.uuid1 = uuid.uuid1()        
 
-    # TODO id as property
+    @property
+    def id(self):
+        return self._id
+    
+    @id.setter
+    def id(self, id):
+        if self.event.get_objects(self.event.combos,id=id):
+            raise ValueError(f"Combo with id {id} already exists")
+
+        self._id = id
+        return self._id
+
+    @property
+    def rider(self):
+        return self._rider
+
+    @rider.setter
+    def rider(self, rider):
+        if self.event.get_objects(
+            self.event.combos, rider=rider, horse=self.horse
+            ):
+            raise ValueError(f'Combo: {rider.surname} {rider.given_name} riding {self.horse.name} already exists')
+
+        self._rider = rider
+
+    @property
+    def horse(self):
+        return self._horse
+
+    @horse.setter
+    def horse(self, horse):
+
+        if self.event.get_objects(
+            self.event.combos, rider=self.rider, horse=horse
+            ):
+            raise ValueError(f'Combo: {self.rider.surname} {self.rider.given_name} riding {horse.name} already exists')
+
+        self._horse = horse
+
+
 
 
 @dataclass
