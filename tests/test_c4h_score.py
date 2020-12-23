@@ -10,7 +10,7 @@ import time
 def mock_event():
     mock_event = c4h.C4HEvent('Baccabuggry World Cup')
     rider = mock_event.new_rider(given_name='Bob', surname='Down')
-    horse = mock_event.new_horse('Topless')
+    horse = mock_event.new_horse(name='Topless')
     
     return mock_event
 
@@ -47,7 +47,7 @@ def test_C4HEvent_set_object(mock_event):
         mock_event.set_object(rider, ea_number = '12345678')
     assert str(e.value) == "Rider EA number should be 7 not 8 digits long"
    
-    #C4HHorse TODO
+    #C4HHorse
     with pytest.raises(ValueError) as e:
         mock_event.set_object(mock_event.horses[0],ea_number='1234567')
     assert str(e.value) == "Horse EA number should be 8 not 7 digits long"
@@ -89,10 +89,10 @@ def test_C4HEvent_new_rider(mock_event):
 # TODO start here
 def test_C4HEvent_new_horse(mock_event):
     name = "Heffalump"
-    assert type(mock_event.new_horse(name)) == c4h._C4HHorse
+    assert type(mock_event.new_horse(name=name)) == c4h._C4HHorse
     
     with pytest.raises(ValueError) as e:
-        mock_event.new_horse(name)
+        mock_event.new_horse(name=name)
     assert str(e.value) == f"Horse {name} already exists"
 
 def test_C4HEvent_new_combo(mock_event):
