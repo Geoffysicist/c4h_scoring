@@ -47,8 +47,6 @@ class C4HEvent(object):
         self.last_change = datetime.now(timezone.utc)
         self.filename = None
 
-        # add default arena
-        self.new_arena(id='1')
 
     def update(self):
         self.last_change = datetime.now(timezone.utc)
@@ -61,7 +59,17 @@ class C4HEvent(object):
         self.update()
         return True
 
-    def get_objects(self, list_of_objects, **kwargs):
+    def exists_object(self, obj, **kwargs):
+        """Check to see in an obj with attributes kwargs exists.
+
+        if no kwargs all attrubutes of the object type except the _ID are checked.
+        """
+        if kwargs:
+            pass
+        else:
+            return [obj in [val for key,val in vars(self).items()]]
+
+    def get_objects(self, list_of_obj, **kwargs):
         '''Find objects in lists of dataclasses matching kwargs.
 
         keyword args:
@@ -72,7 +80,7 @@ class C4HEvent(object):
             List contains all objects of that dataclass if no kwargs
         '''
 
-        objects = copy.deepcopy(list_of_objects)
+        objects = copy.deepcopy(list_of_obj)
         for key, val in kwargs.items():
             objects = [o for o in objects if getattr(o, key) == val]
 
@@ -82,7 +90,7 @@ class C4HEvent(object):
         # TODO
         pass
 
-    def new_arena(self, id):
+    def new_arena(self, **kwargs):
         '''creates a new arena and appends it to the arena list.
 
         Args:
@@ -93,7 +101,7 @@ class C4HEvent(object):
             _C4HArena
         '''
         a = _C4HArena(self)
-        self.set_object(a, id=id)
+        self.set_object(a, **kwargs)
         self.arenas.append(a)
         self.update()
 
@@ -272,7 +280,7 @@ class _C4HArena(object):
     event: C4HEvent
     _id: str = ''
     name: str = ''
-    _ID: uuid.UUID = uuid.uuid1()
+    _ID: uuid.UUID = field(default=uuid.uuid1(), compare=False)
 
     def __post_init__(self):
         if not self.name: self.name = f'Arena {self.id}'
