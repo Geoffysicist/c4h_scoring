@@ -7,10 +7,14 @@ import yaml
 import csv
 import uuid
 import copy
+import dataclasses
 
 from datetime import date, datetime, timezone
-from pydantic import BaseModel
-from dataclasses import dataclass, field
+from typing import List
+from pydantic import BaseModel, validator, ValidationError
+from pydantic.dataclasses import dataclass
+
+# from dataclasses import dataclass, field
 
 INDENT = '  ' #indent used for output
 
@@ -105,7 +109,7 @@ class C4HEvent(object):
         Returns:
             _C4HArena
         '''
-        a = _C4HArena(self)
+        a = _C4HArena(event=self)
         self.set_object(a, **kwargs)
         self.arenas.append(a)
         self.update()
@@ -272,7 +276,13 @@ class C4HEvent(object):
 
 
 
-@dataclass
+class Config:
+    """This defines the configuration for the following dataclasses.
+    """
+    validate_assignment = True
+    arbitrary_types_allowed = True
+
+@dataclass(config=Config)
 class _C4HArena(object):
     '''An arena in the event which holds jumpclasses.
 
@@ -285,7 +295,8 @@ class _C4HArena(object):
     event: C4HEvent
     _id: str = ''
     name: str = ''
-    _ID: uuid.UUID = field(default=uuid.uuid1(), compare=False)
+    _ID: uuid.UUID = dataclasses.field(default=uuid.uuid1(), compare=False)
+
 
     def __post_init__(self):
         if not self.name: self.name = f'Arena {self.id}'
@@ -307,7 +318,7 @@ class _C4HArena(object):
         return self._id
 
 
-@dataclass
+@dataclass(config=Config)
 class _C4HRider(object):
     '''Rider details.
 
@@ -365,7 +376,7 @@ class _C4HRider(object):
         return self._ea_number
 
 
-@dataclass
+@dataclass(config=Config)
 class _C4HHorse(object):
     '''Horse details.
 
@@ -407,7 +418,7 @@ class _C4HHorse(object):
         return self._ea_number
 
 
-@dataclass
+@dataclass(config=Config)
 class _C4HCombo(object):
     '''Rider/horse combinations.
 
@@ -466,7 +477,7 @@ class _C4HCombo(object):
 
 
 
-@dataclass
+@dataclass(config=Config)
 class _C4HOfficial(object):
     '''Official details.
 
@@ -481,7 +492,7 @@ class _C4HOfficial(object):
     judge: bool = True
     cd: bool = False
 
-@dataclass
+@dataclass(config=Config)
 class _C4HJumpClass(object):
     '''A show jumping class.
 
