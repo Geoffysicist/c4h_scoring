@@ -75,7 +75,8 @@ def test_C4HEvent_exists_object(mock_event):
 
     arena = mock_event.arenas[0]
     assert mock_event.exists_object(arena)
-    # assert mock_event.exists_object(arena, id='1')
+    assert mock_event.exists_object(arena, id='1')
+    assert not mock_event.exists_object(arena, id='42')
     
 
 

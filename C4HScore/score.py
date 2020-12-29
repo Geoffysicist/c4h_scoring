@@ -9,6 +9,7 @@ import uuid
 import copy
 
 from datetime import date, datetime, timezone
+from pydantic import BaseModel
 from dataclasses import dataclass, field
 
 INDENT = '  ' #indent used for output
@@ -64,10 +65,14 @@ class C4HEvent(object):
 
         if no kwargs all attrubutes of the object type except the _ID are checked.
         """
+        attr_lists = [val for key, val in vars(self).items() if type(val) is list]
+        attr_list = [l for l in attr_lists if l and type(l[0]) == type(obj)]
         if kwargs:
-            pass
+            # get all the list type attributes
+            return (self.get_objects(attr_list[0], **kwargs))
         else:
-            return [obj in [val for key,val in vars(self).items()]]
+            # TODO check if there is a use case for this
+            return [o for o in attr_list[0] if o == obj]
 
     def get_objects(self, list_of_obj, **kwargs):
         '''Find objects in lists of dataclasses matching kwargs.
