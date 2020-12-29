@@ -2,11 +2,14 @@
 """
 
 import json
+from typing import Any
 import yaml
 import csv
 import uuid
+import copy
 
 from datetime import date, datetime, timezone
+from pydantic import BaseModel
 from dataclasses import dataclass, field
 
 INDENT = '  ' #indent used for output
@@ -15,92 +18,101 @@ class C4HEvent(object):
     '''Equestrian Event.
 
     Attributes:
-        name (string): the event name
-        filename (str): the name of the event file. None for unsaved events
-        arenas (list): C4HArena objects
-        jumpclasses (list): C4HJumpClass objects - now arenas
-        riders (list): C4HRider objects
-        horses (list): C4HHorse objects
-        combos (list): C4HCombos rider, horse, id
-        details (string): other information about the event
-        dates (list): list of dates for the event
-        indent (string): indent to use in yaml like output files. Default is 2 spaces
-        # changed (bool): indicates whether the event has been changed since last save
+        name (str): the event name
+        details (str): other information about the event
+        dates (list[date]): start and finish dates for the event
+        arenas (list[_C4HArena]):
+        riders (list[_C4HRider]):
+        horses (list[_C4HHorse]):
+        combos (list[_C4HCombo]):
+        officials (list[_C4HOfficial]):
+        jumpclasses (list[_C4HJumpClass]):
+        rounds (list[C4HRound]):
         last_save (datetime): UTC date & time the event was last saved
         last_change (datetime): UTC date and time of last change in any data
-        # timezone (timeezone): best to leave as UTC if storing on servers etc
+        filename (str): the name of the event file. None for unsaved events
     '''
 
     def __init__(self, event_name):
         self.name = event_name
-        self.filename = None
+        self.details = ''
+        self.dates = [date.today(),date.today()]
         self.arenas = []
         self.riders = []
         self.horses = []
         self.combos = []
-        self.details = ''
-        self.dates = [date.today(),date.today()]
+        self.officials = []
+        self.jumpclasses = []
+        self.rounds = []
         self.last_save = datetime(1984,4,4, 13, tzinfo=timezone.utc)
         self.last_change = datetime.now(timezone.utc)
+        self.filename = None
 
-        # add default arena
-        self.new_arena('1','Arena 1')
 
     def update(self):
         self.last_change = datetime.now(timezone.utc)
         return self.last_change
 
-    # def check_unique_id(self, id, list_):
-    #     """Checks ids of objects in list_ to see if id is unique.
+    def set_object(self, obj, **kwargs):
+        for key, val in kwargs.items():
+            setattr(obj, key, val)
 
-    #     the list must be objects that have an attribute 'id'
+        self.update()
+        return True
 
-    #     Args:
-    #         id (str): the id to check
-    #         list_ (list): objects with an 'id' attribute
-        
-    #     Returns:
-    #         True or False
-    #     """
-    #     return id not in [obj.id for obj in list_]
+    def exists_object(self, obj, **kwargs):
+        """Check to see in an obj with attributes kwargs exists.
 
-    def new_arena(self, arena_id, name):
+        if no kwargs all attrubutes of the object type except the _ID are checked.
+        """
+        attr_lists = [val for key, val in vars(self).items() if type(val) is list]
+        attr_list = [l for l in attr_lists if l and type(l[0]) == type(obj)]
+        if kwargs:
+            # get all the list type attributes
+            return (self.get_objects(attr_list[0], **kwargs))
+        else:
+            # TODO check if there is a use case for this
+            return [o for o in attr_list[0] if o == obj]
+
+    def get_objects(self, list_of_obj, **kwargs):
+        '''Find objects in lists of dataclasses matching kwargs.
+
+        keyword args:
+            must be names of attributes of the dataclass
+
+        Returns:
+            list[objects] list empty if no matches.
+            List contains all objects of that dataclass if no kwargs
+        '''
+
+        objects = copy.deepcopy(list_of_obj)
+        for key, val in kwargs.items():
+            objects = [o for o in objects if getattr(o, key) == val]
+
+        return objects
+
+    def merge_objects(self, obj1, obj2):
+        # TODO
+        pass
+
+    def new_arena(self, **kwargs):
         '''creates a new arena and appends it to the arena list.
 
         Args:
-            arena_id (string):
+            id (string):
             name (string):
 
         Returns:
-            C4HArena
+            _C4HArena
         '''
-        if self.get_arenas(id=arena_id):
-            raise ValueError(f'Arena with id {arena_id} already exists')
-        
-        a = C4HArena(arena_id, name)
+        a = _C4HArena(self)
+        self.set_object(a, **kwargs)
         self.arenas.append(a)
         self.update()
 
         return a
-
-    def get_arenas(self, **kwargs):
-        '''Find rider matching kwargs.
-
-        keyword args:
-            id (str): public id
-            name (string): 
-
-        Returns:
-            list[C4HArena] list empty if no matches.
-            List contains all arenas if no kwargs
-        '''
-        arenas = self.arenas
-        for key, val in kwargs.items():
-            arenas = [a for a in arenas if getattr(a,key) == val]
-        
-        return arenas
-        
-    def new_rider(self, surname=None, given_name=None):
+    
+    def new_rider(self, **kwargs):
         '''creates a new rider and appends it to the rider list.
 
         It seems odd to initialise these attribures with None but I want
@@ -108,122 +120,102 @@ class C4HEvent(object):
         They may know the given name but not the surname or vice versa
 
         Args:
-            surname (string): 
-            given_name (string): 
-            # ea_number (string): length must be 7 digits
 
         Returns:
-            C4HRider
+            _C4HRider
         '''
-
-        if self.get_riders(surname=surname, given_name=given_name):
-            raise ValueError(f"Rider {surname} {given_name} already exists")
-
-        r = C4HRider(surname=surname, given_name=given_name)
+        r = _C4HRider(self)
+        self.set_object(r, **kwargs)
         self.riders.append(r)
         self.update()
 
         return r
-      
-    def get_riders(self, **kwargs):
-        '''Find rider matching kwargs.
-
-        keyword args:
-            surname (string)
-            given_name (string): 
-            ea_number (string):
-
-        Returns:
-            list[C4HRider] list empty if no matches.
-            List contains all riders if no kwargs
-        '''
-        riders = self.riders
-        for key, val in kwargs.items():
-            riders = [r for r in riders if getattr(r,key) == val]
-        
-        return riders
-
-    def new_horse(self, name):
+    
+    def new_horse(self, **kwargs):
         '''creates a new horse and appends it to the _horses list.
 
         Args:
-            name (string): 
+            name (str): 
             ea_number (int): length must be 8 digits
 
         Returns:
-            C4HHorse
+            _C4HHorse
         '''
-        if self.get_horses(name=name):
-            raise ValueError(f"Horse {name} already exists")
-
-        h = C4HHorse(name)
+        h = _C4HHorse(self)
+        self.set_object(h, **kwargs)
         self.horses.append(h)
         self.update()
 
         return h
 
-    def get_horses(self, **kwargs):
-        '''Find horse matching kwargs.
-
-        keyword args:
-            name (string):
-            ea_number (string):
-
-        Returns:
-            list[C4HHorse] list empty if no matches.
-            List contains all horses if no kwargs
-        '''
-        horses = self.horses
-        for key, val in kwargs.items():
-            horses = [h for h in horses if getattr(h,key) == val]
-        
-        return horses
-
-    def new_combo(self, rider, horse, id=''):
+    def new_combo(self, rider, horse, **kwargs):
         '''creates a new combination and appends it to the combo list.
 
         Args:
-            rider (C4HRider): 
-            horse (C4HHorse):
+            rider (_C4HRider): 
+            horse (_C4HHorse):
             id (str):
         
         Returns:
-            C4HCombo
+            _C4HCombo
         '''
-        if self.get_combos(rider=rider, horse=horse):
-            raise ValueError(
-                f"Combination {rider.surname}, {rider.given_name}: "
-                f"{horse.name} already exists"
-            )
-
-        c = C4HCombo(rider, horse, id)
+        c = _C4HCombo(self, rider, horse)
         self.combos.append(c)
+        self.set_object(c, rider=rider, horse=horse)
+        self.set_object(c, **kwargs)
         self.update()
 
         return c
+    
+    def new_official(self, surname, given_name):
+        '''creates a new official and appends it to the rider list.
 
-    def get_combos(self, **kwargs):
-        '''Find horse matching kwargs.
-
-        keyword args:
-            name (string):
-            ea_number (string):
+        Args:
+            surname (string): 
+            given_name (string): 
 
         Returns:
-            list[C4HHorse] list empty if no matches.
-            List contains all horses if no kwargs
+            _C4HOfficial
         '''
-        combos = self.combos
-        for key, val in kwargs.items():
-            combos = [c for c in combos if getattr(c,key) == val]
-        
-        return combos
 
-    # def get_jumpclasses(self):
+        if self.get_officials(surname=surname, given_name=given_name):
+            raise ValueError(f"Official {surname} {given_name} already exists")
+
+        o = _C4HOfficial(surname=surname, given_name=given_name)
+        self.officials.append(o)
+        self.update()
+
+        return o
+
+    def get_officials(self, **kwargs):
+        '''Find official matching kwargs.
+
+        keyword args:
+            surname (str)
+            given_name (str): 
+            judge (bool):
+            cd (bool):
+
+        Returns:
+            list[_C4HOfficial] list empty if no matches.
+            List contains all officials if no kwargs
+        '''
+        officials = self.officials
+        for key, val in kwargs.items():
+            officials = [o for o in officials if getattr(o,key) == val]
+        
+        return officials
+
+
+    def new_jumpclass(self):
+        pass
+
+    def get_jumpclasses(self):
+        pass
     #     '''Find jumpclass matching kwargs.
 
     #     keyword args:
-    #         arena (C4HArena):
+    #         arena (_C4HArena):
     #         article (C4HArticle):
     #         cd (C4Hcd):
     #         description (str):
@@ -236,7 +228,7 @@ class C4HEvent(object):
     #         jumpoffs (int):
 
     #     Returns:
-    #         list[C4HJumpClass] list empty if no matches.
+    #         list[_C4HJumpClass] list empty if no matches.
     #     '''
     #     # jclasses = self.jumpclasses
     #     # for key, val in kwargs.items():
@@ -244,6 +236,12 @@ class C4HEvent(object):
     #     jclasses = []
     #     jclasses.extend([a.get_jumpclasses(**kwargs) for a in self.arenas])
     #     return jclasses
+
+    def new_round(self):
+        pass
+
+    def get_rounds(self):
+        pass
 
     def event_save(self):
         """Dumps the event to a yaml like file."""
@@ -271,101 +269,87 @@ class C4HEvent(object):
         # user may have changed the filename so...
         new_event.filename = fn
         return new_event
-@dataclass
-class C4HJumpClass(object):
-    '''A show jumping class.
 
-    Attributes:
-        id (str): an integer that may have a character appended eg. 8c 
-        name (string):
-        arena (C4HArena):
-        _ID (uuid): unique identifier
-        description (string):
-        article (EAArticle):
-        height (int): the height in cm
-        judge (string): judges name
-        cd (string): course designer name
-        places (int): the number of places awarded prizes
-        rounds (list[C4HRound]): rounds entered in this arenas
-    '''
-    def __init__(self, id, arena):
 
-        self._ID = uuid.UUID()
-        self.id = id
-        self.arena = arena
-        self.arena.jumpclasses.append(self)
-        self.name = f'Class {self.id}'
-        self.article = None
-        self.description = ''
-        self.height = 0
-        self.judge = ''
-        self.cd = ''
-        self.places = 6
-        self.rounds= []
 
 @dataclass
-class C4HArena(object):
+class _C4HArena(object):
     '''An arena in the event which holds jumpclasses.
 
     Attributes:
         _ID (int): private id
         id (str): public id
         name (string):
-        # event (C4HEvent): parent event
-        jumpclasses (list):
     '''
 
-    id: str
-    name: str
-    jumpclasses: list[C4HJumpClass] = field(default_factory=list)
-    _ID: int = uuid.uuid1()
+    event: C4HEvent
+    _id: str = ''
+    name: str = ''
+    _ID: uuid.UUID = field(default=uuid.uuid1(), compare=False)
 
-    def new_jumpclass(self):
-        '''creates a new jumpclass if it doesn't exist.
-
-        checks to see if a class with name class_id exists
-        if it exists a valueerror is raised
-        if not a new class is created and added to the class list then returned
-
-        Args:
-
-        Raises:
-            ValueError: if a class with that class_id already exists
-        '''
-
-        j = C4HJumpClass(self)
-        self.jumpclasses.append(j)
-        return j
-
-    def get_jumpclass(self, class_id):
-        '''returns the class with class_id.
-
-        Args:
-            class_id (string): the name of the class to find
-
-        Returns:
-            C4HJumpclass or False if not found
-        '''
-        this_class = False
+    def __post_init__(self):
+        if not self.name: self.name = f'Arena {self.id}'
         
-        for j in self.jumpclasses:
-            if j.id == class_id:
-                this_class = j
-        
-        return this_class
-    
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, id):
+        if self.event.get_objects(self.event.arenas, id=id):
+            raise ValueError(f'Arena with id {id} already exists')
+
+        #update arena name if autogenerated name
+        if self.name == f'Arena {self.id}':
+            self.name = f'Arena {id}'
+
+        self._id = id
+        return self._id
+
+
 @dataclass
-class C4HRider(object):
+class _C4HRider(object):
     '''Rider details.
 
     Attributes:
         surname (string)
-        given_name (string): 
+        given_name (string):
+        _ID (uuid.UUID): unique ID
         ea_number (string): This must 7 numerical digits
     '''
-    surname: str
-    given_name: str
+    event: C4HEvent
+    _surname: str = ''
+    _given_name: str = ''
+    _ID: uuid.UUID = uuid.uuid1()
     _ea_number: str = ''
+
+    @property
+    def surname(self):
+        return self._surname
+
+    @surname.setter
+    def surname(self, surname):
+        if self.event.get_objects(
+            self.event.riders, surname=surname, given_name=self.given_name
+            ):
+            raise ValueError(f"Rider named {surname}, {self.given_name} already exists")
+        
+        self._surname = surname
+        return self._surname
+
+    @property
+    def given_name(self):
+        return self._given_name
+
+    @given_name.setter
+    def given_name(self, given_name):
+        if self.event.get_objects(
+            self.event.riders, surname=self.surname, given_name=given_name
+            ):
+            raise ValueError(f"Rider named {self.surname}, {given_name} already exists")
+        
+        self._given_name = given_name
+        return self._given_name
 
     @property
     def ea_number(self):
@@ -376,22 +360,38 @@ class C4HRider(object):
         if ea_number.isnumeric() and (len(ea_number) == 7):
             self._ea_number = ea_number
         else:
-            raise ValueError('Rider EA number should be a number 7 digits long')
+            raise ValueError(f'Rider EA number should be 7 not {len(ea_number)} digits long')
         
         return self._ea_number
 
+
 @dataclass
-class C4HHorse(object):
+class _C4HHorse(object):
     '''Horse details.
 
     Attributes:
-        name (string):
-        ea_number (string): this must be 8 numerical digits
+        event (C4HEvent):
+        name (str):
+        ea_number (str): this must be 8 numerical digits
     '''
     # def __init__(self, name, ea_number):
     #     self.name = name
-    name: str
+    event: C4HEvent
+    _name: str = ''
     _ea_number: str = ''
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        if self.event.get_objects(self.event.horses, name=name):
+            raise ValueError(f"Horse {name} already exists")
+        
+        self._name = name
+        return self._name
+
 
     @property
     def ea_number(self):
@@ -402,33 +402,123 @@ class C4HHorse(object):
         if ea_number.isnumeric() and (len(ea_number) == 8):
             self._ea_number = ea_number
         else:
-            raise ValueError('Horse EA number should be a number 8 digits long')
+            raise ValueError(f'Horse EA number should be 8 not {len(ea_number)} digits long')
         
         return self._ea_number
 
+
 @dataclass
-class C4HCombo(object):
+class _C4HCombo(object):
     '''Rider/horse combinations.
 
     Attributes:
         id (int): unique id for combination
-        rider (C4HRider):
-        horse (C4HHorse):
+        _ID (uuid.UUID):
+        rider (_C4HRider):
+        horse (_C4HHorse):
     '''
 
-    # def __init__(self, rider, horse, id):
-    rider: C4HRider
-    horse: C4HHorse
-    id: str
-    _ID: uuid.uuid1 = uuid.uuid1()
+    event: C4HEvent
+    _rider: _C4HRider
+    _horse: _C4HHorse
+    _id: str = ''
+    _ID: uuid.uuid1 = uuid.uuid1()        
 
-class C4HRound(object):
+    @property
+    def id(self):
+        return self._id
+    
+    @id.setter
+    def id(self, id):
+        if self.event.get_objects(self.event.combos,id=id):
+            raise ValueError(f"Combo with id {id} already exists")
+
+        self._id = id
+        return self._id
+
+    @property
+    def rider(self):
+        return self._rider
+
+    @rider.setter
+    def rider(self, rider):
+        if self.event.get_objects(
+            self.event.combos, rider=rider, horse=self.horse
+            ):
+            raise ValueError(f'Combo: {rider.surname} {rider.given_name} riding {self.horse.name} already exists')
+
+        self._rider = rider
+
+    @property
+    def horse(self):
+        return self._horse
+
+    @horse.setter
+    def horse(self, horse):
+
+        if self.event.get_objects(
+            self.event.combos, rider=self.rider, horse=horse
+            ):
+            raise ValueError(f'Combo: {self.rider.surname} {self.rider.given_name} riding {horse.name} already exists')
+
+        self._horse = horse
+
+
+
+
+@dataclass
+class _C4HOfficial(object):
+    '''Official details.
+
+    Attributes:
+        surname (str):
+        given_name (str): 
+        judge (bool): default True
+        cd (bool): default False
+    '''
+    surname: str
+    given_name: str
+    judge: bool = True
+    cd: bool = False
+
+@dataclass
+class _C4HJumpClass(object):
+    '''A show jumping class.
+
+    Attributes:
+        id (str): an integer that may have a character appended eg. 8c 
+        name (string):
+        arena (_C4HArena):
+        _ID (uuid): unique identifier
+        description (string):
+        article (EAArticle):
+        height (int): the height in cm
+        judge (string): judges name
+        cd (string): course designer name
+        places (int): the number of places awarded prizes
+        rounds (list[_C4HRound]): rounds entered in this arenas
+    '''
+    def __init__(self, id, arena):
+
+        self._ID = uuid.UUID()
+        self.id = id
+        self.arena = arena
+        self.name = f'Class {self.id}'
+        self.article = None
+        self.description = ''
+        self.height = 0
+        self.judge = ''
+        self.cd = ''
+        self.places = 6
+        self.rounds= []
+
+class _C4HRound(object):
     '''Jump round and results.
 
     Attributes:
-        jumpclass (C4HJumpClass):
+        jumpclass (_C4HJumpClass):
         round_type (str): identifies whether a round or jumpoff - r1, r2, jo1, jo2 etc
-        combo (C4HCombo):
+        combo (_C4HCombo):
         faults (list): Jump numbers followed by one or more letters indicating the fault type.
             rail: r, disobedience: d, displacement/knockdown: k, fall: f, elimination: e
         jump_pens (int):
