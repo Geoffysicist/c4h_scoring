@@ -1,0 +1,367 @@
+""" score_helpers.py - dataclasses for C4HScore.
+
+These are called by the main class C4HEvent.
+They should essentially be considered private and lnoy accessed through CH4Event methods
+All unit tests are performed through C4hEvent
+"""
+
+import uuid
+import yaml
+import dataclasses
+from typing import List, Any
+from pydantic import validator, ValidationError
+from pydantic.dataclasses import dataclass
+from ..C4HScore import score as c4h
+
+
+class Config:
+    """This defines the configuration for all the dataclasses.
+    """
+    validate_assignment = True
+    arbitrary_types_allowed = True
+
+@dataclass(config=Config)
+class C4HArena(object):
+    '''An arena in the event.'''
+
+    event: Any #c4h.C4HEvent # Must be a C4HEvent
+    id: str = ''
+    name: str = ''
+    ID: uuid.UUID = dataclasses.field(default=uuid.uuid1(), compare=False)
+
+    # @validator('event')
+    # def is_event(cls, val):
+    #     event = values['event']
+    #     if event.get_objects(event.arenas, id=val):
+    #         raise ValueError(f'Arena with id {val} already exists')
+
+
+@dataclass(config=Config)
+class C4HRider(object):
+    '''Rider details.
+
+    Attributes:
+        surname (string)
+        given_name (string):
+        _ID (uuid.UUID): unique ID
+        ea_number (string): This must 7 numerical digits
+    '''
+    event: Any
+    _surname: str = ''
+    _given_name: str = ''
+    _ID: uuid.UUID = uuid.uuid1()
+    _ea_number: str = ''
+
+    @property
+    def surname(self):
+        return self._surname
+
+    @surname.setter
+    def surname(self, surname):
+        if self.event.get_objects(
+            self.event.riders, surname=surname, given_name=self.given_name
+            ):
+            raise ValueError(f"Rider named {surname}, {self.given_name} already exists")
+        
+        self._surname = surname
+        return self._surname
+
+    @property
+    def given_name(self):
+        return self._given_name
+
+    @given_name.setter
+    def given_name(self, given_name):
+        if self.event.get_objects(
+            self.event.riders, surname=self.surname, given_name=given_name
+            ):
+            raise ValueError(f"Rider named {self.surname}, {given_name} already exists")
+        
+        self._given_name = given_name
+        return self._given_name
+
+    @property
+    def ea_number(self):
+        return self._ea_number
+
+    @ea_number.setter
+    def ea_number(self, ea_number):
+        if ea_number.isnumeric() and (len(ea_number) == 7):
+            self._ea_number = ea_number
+        else:
+            raise ValueError(f'Rider EA number should be 7 not {len(ea_number)} digits long')
+        
+        return self._ea_number
+
+
+@dataclass(config=Config)
+class C4HHorse(object):
+    '''Horse details.
+
+    Attributes:
+        event (C4HEvent):
+        name (str):
+        ea_number (str): this must be 8 numerical digits
+    '''
+    # def __init__(self, name, ea_number):
+    #     self.name = name
+    event: Any
+    _name: str = ''
+    _ea_number: str = ''
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        if self.event.get_objects(self.event.horses, name=name):
+            raise ValueError(f"Horse {name} already exists")
+        
+        self._name = name
+        return self._name
+
+
+    @property
+    def ea_number(self):
+        return self._ea_number
+
+    @ea_number.setter
+    def ea_number(self, ea_number):
+        if ea_number.isnumeric() and (len(ea_number) == 8):
+            self._ea_number = ea_number
+        else:
+            raise ValueError(f'Horse EA number should be 8 not {len(ea_number)} digits long')
+        
+        return self._ea_number
+
+
+@dataclass(config=Config)
+class C4HCombo(object):
+    '''Rider/horse combinations.
+
+    Attributes:
+        id (int): unique id for combination
+        _ID (uuid.UUID):
+        rider (_C4HRider):
+        horse (_C4HHorse):
+    '''
+
+    event: Any
+    _rider: C4HRider
+    _horse: C4HHorse
+    _id: str = ''
+    _ID: uuid.uuid1 = uuid.uuid1()        
+
+    @property
+    def id(self):
+        return self._id
+    
+    @id.setter
+    def id(self, id):
+        if self.event.get_objects(self.event.combos,id=id):
+            raise ValueError(f"Combo with id {id} already exists")
+
+        self._id = id
+        return self._id
+
+    @property
+    def rider(self):
+        return self._rider
+
+    @rider.setter
+    def rider(self, rider):
+        if self.event.get_objects(
+            self.event.combos, rider=rider, horse=self.horse
+            ):
+            raise ValueError(f'Combo: {rider.surname} {rider.given_name} riding {self.horse.name} already exists')
+
+        self._rider = rider
+
+    @property
+    def horse(self):
+        return self._horse
+
+    @horse.setter
+    def horse(self, horse):
+
+        if self.event.get_objects(
+            self.event.combos, rider=self.rider, horse=horse
+            ):
+            raise ValueError(f'Combo: {self.rider.surname} {self.rider.given_name} riding {horse.name} already exists')
+
+        self._horse = horse
+
+
+
+
+@dataclass(config=Config)
+class C4HOfficial(object):
+    '''Official details.
+
+    Attributes:
+        surname (str):
+        given_name (str): 
+        judge (bool): default True
+        cd (bool): default False
+    '''
+    surname: str
+    given_name: str
+    judge: bool = True
+    cd: bool = False
+
+@dataclass(config=Config)
+class C4HJumpClass(object):
+    '''A show jumping class.
+
+    Attributes:
+        id (str): an integer that may have a character appended eg. 8c 
+        name (string):
+        arena (_C4HArena):
+        _ID (uuid): unique identifier
+        description (string):
+        article (EAArticle):
+        height (int): the height in cm
+        judge (string): judges name
+        cd (string): course designer name
+        places (int): the number of places awarded prizes
+        rounds (list[_C4HRound]): rounds entered in this arenas
+    '''
+    def __init__(self, id, arena):
+
+        self._ID = uuid.UUID()
+        self.id = id
+        self.arena = arena
+        self.name = f'Class {self.id}'
+        self.article = None
+        self.description = ''
+        self.height = 0
+        self.judge = ''
+        self.cd = ''
+        self.places = 6
+        self.rounds= []
+
+class C4HRound(object):
+    '''Jump round and results.
+
+    Attributes:
+        jumpclass (_C4HJumpClass):
+        round_type (str): identifies whether a round or jumpoff - r1, r2, jo1, jo2 etc
+        combo (_C4HCombo):
+        faults (list): Jump numbers followed by one or more letters indicating the fault type.
+            rail: r, disobedience: d, displacement/knockdown: k, fall: f, elimination: e
+        jump_pens (int):
+        time (float): time 0.01 secs
+        time_pens (int):
+        notes (str): optional notes from the judge
+    '''
+    def __init__(self, jumpclass, round_type, combo):
+        self.jumpclass = jumpclass
+        self.round_type = round_type
+        self.combo = combo
+        self.faults = []
+        self.jump_pens = 0
+        self.time = 0
+        self.time_pens = 0
+        self.notes = ''
+
+class C4HArticle(object):
+    '''EA/FEI article.
+
+    Attributes:
+        id (string): Article number
+        descrption (string): Short description of the class type
+        alt_name (string): Alternative name for the class
+        round_num (int): Number of rounds.
+        round_table (string): Table for the round.
+
+        identifier (string): the paragraph.subparagraph number string
+        description (string): word description of the competition
+        alt_name: the deprecated silly names that everyone still uses
+    '''
+
+    def __init__(self, id):
+        '''init the article with a dictionary of the id, description and old name.
+        '''
+        self.rules = 'EA'
+        self._id = id
+        self.description = ''
+        self.alt_name = None
+        self.round_num = 1
+        self.round_table = 'A'
+        self.round_against_clock = True
+        self.round_combinations = 'allowed'
+        self.jo_num = 0
+        self.jo_table = ''
+        self.jo_jumps = ''
+        self.jo_combinations = ''
+        self.sub_articles = []
+
+    def articles_save(self, fn=None):
+        if not fn: fn = f'{self.rules}_articles.c4ha'
+
+        with open(fn, 'w') as out_file:
+            out_file.write(f'--- # {self.rules} Articles\n')
+            yaml.dump(self, out_file)
+
+    # def articles_save_as(self, fn):       
+    #     self.filename = fn
+    #     self.event_save()
+
+    def articles_open(self, fn):
+        ''' Creates an event from a c4hs yaml file.
+        
+        Returns:
+            C4HEvent
+        '''
+        with open(fn, 'r') as in_file:
+            new_event = yaml.load(in_file, Loader=yaml.FullLoader)
+
+        return new_event
+    
+
+# def read_csv_nominate(fn, event_name='New Event'):
+#     '''Loads event data from a nominate like csv file
+
+#     Args:
+#         fn (string): path and filename
+#         event_name (string): the name of the event
+
+#     Returns:
+#         C4HEvent
+#     '''
+
+#     # event_data = pandas.read_csv(fn)
+#     with open(fn, newline='') as in_file:
+#         in_data = csv.DictReader(in_file)
+#         event = C4HEvent(event_name)
+#         for entry in in_data:
+#             rider = entry['Rider'].split(' ')
+#             given_name = rider[0]
+#             surname = ' '.join(rider[1:])
+#             horse = entry['Horse']
+#             id = entry['ID']
+#             jumpclass = entry['Class']
+#             if not event.get_rider(surname, given_name):
+#                 rider = event.new_rider(surname=surname, given_name=given_name)
+#             else:
+#                 rider = event.get_rider(surname, given_name)
+#             if not event.get_horse(horse):
+#                 horse = event.new_horse(horse)
+#             else:
+#                 horse = event.get_horse(horse)
+            
+#             if not event.get_combo(id):
+#                 combo = event.new_combo(id, rider=rider, horse=horse)
+#             else:
+#                 combo = event.get_combo(id)
+            
+#             if not event.get_class(jumpclass):
+#                 jumpclass = event.new_class(jumpclass)
+#             else:
+#                 jumpclass = event.get_class(jumpclass)
+
+#             if not jumpclass.get_combo(combo):
+#                 jumpclass.combos.append(combo)
+
+#     return event
