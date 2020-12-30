@@ -9,7 +9,7 @@ import uuid
 import yaml
 import dataclasses
 from typing import List, Any
-from pydantic import validator, ValidationError
+from pydantic import BaseModel, validator, ValidationError, PydanticValueError
 from pydantic.dataclasses import dataclass
 from ..C4HScore import score as c4h
 
@@ -37,14 +37,15 @@ class C4HArena(object):
 
 
 @dataclass(config=Config)
-class C4HRider(object):
+class C4HRider:
     '''Rider details.
 
     Attributes:
-        surname (string)
-        given_name (string):
+        event (C4HEvent):
+        surname (str):
+        forename (str):
         _ID (uuid.UUID): unique ID
-        ea_number (string): This must 7 numerical digits
+        ea_number (str): This must 7 numerical digits
     '''
     event: Any
     surname: str = ''
@@ -52,106 +53,61 @@ class C4HRider(object):
     ID: uuid.UUID = uuid.uuid1()
     ea_number: str = ''
 
-    # @property
-    # def surname(self):
-    #     return self._surname
-
-    # @surname.setter
-    # def surname(self, surname):
-    #     if self.event.get_objects(
-    #         self.event.riders, surname=surname, given_name=self.given_name
-    #         ):
-    #         raise ValueError(f"Rider named {surname}, {self.given_name} already exists")
-        
-    #     self._surname = surname
-    #     return self._surname
-
-    # @property
-    # def given_name(self):
-    #     return self._given_name
-
-    # @given_name.setter
-    # def given_name(self, given_name):
-    #     if self.event.get_objects(
-    #         self.event.riders, surname=self.surname, given_name=given_name
-    #         ):
-    #         raise ValueError(f"Rider named {self.surname}, {given_name} already exists")
-        
-    #     self._given_name = given_name
-    #     return self._given_name
-
-    # @property
-    # def ea_number(self):
-    #     return self._ea_number
-
-    # @ea_number.setter
-    # def ea_number(self, ea_number):
-    #     if ea_number.isnumeric() and (len(ea_number) == 7):
-    #         self._ea_number = ea_number
-    #     else:
-    #         raise ValueError(f'Rider EA number should be 7 not {len(ea_number)} digits long')
-        
-    #     return self._ea_number
+    @validator('ea_number')
+    def seven_digit_numerical(cls, val):
+        # pass
+        if val:
+            if not val.isdigit():
+                raise ValueError('EA Number may only constist of digits')
+            if len(val) != 7:
+                raise ValueError(f'Rider EA number should be 7 not {len(val)} digits long')
+        return val
 
 
 @dataclass(config=Config)
-class C4HHorse(object):
-    '''Horse details.
+class C4HHorse:
+    '''Rider details.
 
     Attributes:
         event (C4HEvent):
         name (str):
-        ea_number (str): this must be 8 numerical digits
+        ID (uuid.UUID): unique ID
+        ea_number (str): This must 8 numerical digits
     '''
     # def __init__(self, name, ea_number):
     #     self.name = name
     event: Any
-    _name: str = ''
-    _ea_number: str = ''
+    name: str = ''
+    ea_number: str = ''
+    ID: uuid.UUID = uuid.uuid1()
 
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, name):
-        if self.event.get_objects(self.event.horses, name=name):
-            raise ValueError(f"Horse {name} already exists")
-        
-        self._name = name
-        return self._name
-
-
-    @property
-    def ea_number(self):
-        return self._ea_number
-
-    @ea_number.setter
-    def ea_number(self, ea_number):
-        if ea_number.isnumeric() and (len(ea_number) == 8):
-            self._ea_number = ea_number
-        else:
-            raise ValueError(f'Horse EA number should be 8 not {len(ea_number)} digits long')
-        
-        return self._ea_number
+    @validator('ea_number')
+    def seven_digit_numerical(cls, val):
+        # pass
+        if val:
+            if not val.isdigit():
+                raise ValueError('EA Number may only constist of digits')
+            if len(val) != 8:
+                raise ValueError(f'Rider EA number should be 7 not {len(val)} digits long')
+        return val
 
 
 @dataclass(config=Config)
-class C4HCombo(object):
+class C4HCombo:
     '''Rider/horse combinations.
 
     Attributes:
-        id (int): unique id for combination
+        id (int): #TODO ensure unique id for combination
         _ID (uuid.UUID):
         rider (_C4HRider):
         horse (_C4HHorse):
     '''
 
     event: Any
-    _rider: C4HRider
-    _horse: C4HHorse
-    _id: str = ''
-    _ID: uuid.uuid1 = uuid.uuid1()        
+    rider: C4HRider
+    horse: C4HHorse
+    id: str = ''
+    ID: uuid.uuid1 = uuid.uuid1()        
 
     @property
     def id(self):
@@ -216,14 +172,14 @@ class C4HJumpClass(object):
 
     Attributes:
         id (str): an integer that may have a character appended eg. 8c 
-        name (string):
+        name (str):
         arena (_C4HArena):
         _ID (uuid): unique identifier
-        description (string):
+        description (str):
         article (EAArticle):
         height (int): the height in cm
-        judge (string): judges name
-        cd (string): course designer name
+        judge (str): judges name
+        cd (str): course designer name
         places (int): the number of places awarded prizes
         rounds (list[_C4HRound]): rounds entered in this arenas
     '''
@@ -269,14 +225,14 @@ class C4HArticle(object):
     '''EA/FEI article.
 
     Attributes:
-        id (string): Article number
-        descrption (string): Short description of the class type
-        alt_name (string): Alternative name for the class
+        id (str): Article number
+        descrption (str): Short description of the class type
+        alt_name (str): Alternative name for the class
         round_num (int): Number of rounds.
-        round_table (string): Table for the round.
+        round_table (str): Table for the round.
 
-        identifier (string): the paragraph.subparagraph number string
-        description (string): word description of the competition
+        identifier (str): the paragraph.subparagraph number string
+        description (str): word description of the competition
         alt_name: the deprecated silly names that everyone still uses
     '''
 
@@ -324,8 +280,8 @@ class C4HArticle(object):
 #     '''Loads event data from a nominate like csv file
 
 #     Args:
-#         fn (string): path and filename
-#         event_name (string): the name of the event
+#         fn (str): path and filename
+#         event_name (str): the name of the event
 
 #     Returns:
 #         C4HEvent

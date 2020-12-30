@@ -44,31 +44,51 @@ def test_C4HEvent_get_objects(mock_event):
 
 def test_C4HEvent_new_arena(mock_event):
     arena = mock_event.new_arena(id='2')
-    assert type(arena) == score_helpers.C4HArena
+    assert type(arena) == sh.C4HArena
     assert arena.id == '2'
 
 def test_C4HEvent_new_rider(mock_event):
     assert type(mock_event.new_rider()) == c4h.C4HRider
-    assert mock_event.new_rider(forename='fred').forename == 'fred'
-    assert mock_event.new_rider(ea_number='1234567')
+    name = 'fred'
+    assert mock_event.new_rider(forename=name).forename == name
+    num = '1234567'
+    assert mock_event.new_rider(ea_number=num)
     num = '12345678'
     with pytest.raises(ValueError) as e:
         mock_event.new_rider(ea_number=num)
-    assert str(e.value) == f'Rider EA number should be 7 not {len(num)} digits long'
+    assert f'Rider EA number should be 7 not {len(num)} digits long' in str(e.value)
+    num = '123456'
+    with pytest.raises(ValueError) as e:
+        mock_event.new_rider(ea_number=num)
+    assert f'Rider EA number should be 7 not {len(num)} digits long' in str(e.value)
+    num = 'I234567'
+    with pytest.raises(ValueError) as e:
+        mock_event.new_rider(ea_number=num)
+    assert 'EA Number may only constist of digits' in str(e.value)
     
+def test_C4HEvent_new_horse(mock_event):
+    name = "Heffalump"
+    assert type(mock_event.new_horse()) == c4h.C4HHorse
+    assert mock_event.new_horse(name='Heffalump').name == name
+    num = '12345678'
+    assert mock_event.new_horse(ea_number=num)
+    num = '123456789'
+    with pytest.raises(ValueError) as e:
+        mock_event.new_horse(ea_number=num)
+    assert f'Rider EA number should be 7 not {len(num)} digits long' in str(e.value)
+    num = '1234567'
+    with pytest.raises(ValueError) as e:
+        mock_event.new_horse(ea_number=num)
+    assert f'Rider EA number should be 7 not {len(num)} digits long' in str(e.value)
+    num = 'I2345678'
+    with pytest.raises(ValueError) as e:
+        mock_event.new_horse(ea_number=num)
+    assert 'EA Number may only constist of digits' in str(e.value)
+
 # # TODO start here
-# def test_C4HEvent_new_horse(mock_event):
-#     name = "Heffalump"
-#     assert type(mock_event.new_horse(name=name)) == c4h._C4HHorse
+def test_C4HEvent_new_combo(mock_event):
+    pass
 
-# def test_C4HEvent_new_combo(mock_event):
-#     rider = mock_event.new_rider(given_name='Andy', surname='Gravity')
-#     horse = mock_event.new_horse(name='Heffalump')
-#     assert type(mock_event.new_combo(rider, horse)) == c4h._C4HCombo
-
-#     with pytest.raises(ValueError) as e:
-#         mock_event.new_combo(rider, horse)
-#     assert str(e.value) == f"Combination {rider.surname}, {rider.given_name}: {horse.name} already exists"
 
 # def test_C4HEvent_new_official(mock_event):
 #     surname = "Hunt"
