@@ -8,10 +8,12 @@ from typing import List, Any
 import yaml
 import copy
 
+from pathlib import Path
 from datetime import date, datetime, timezone
 from .score_helpers import *
+from pydantic import BaseModel
 
-class C4HEvent(object):
+class C4HEvent(BaseModel):
     '''Equestrian Event.
 
     Attributes:
@@ -29,21 +31,38 @@ class C4HEvent(object):
         last_change (datetime): UTC date and time of last change in any data
         filename (str): the name of the event file. None for unsaved events
     '''
+    name: str
+    details:  str = ''
+    dates: List[date] = [date.today(),date.today()]
+    arenas: List[C4HArena] = []
+    riders: List[C4HRider] = []
+    horses: List[C4HHorse] = []
+    combos: List[C4HCombo] = []
+    officials: List[C4HOfficial] = []
+    jumpclasses: List[C4HJumpClass] = []
+    rounds: List[C4HRound] = []
+    last_save: datetime = datetime(1984,4,4, 13, tzinfo=timezone.utc)
+    last_change: datetime = datetime.now(timezone.utc)
+    filename: Path = None
 
-    def __init__(self, event_name):
-        self.name = event_name
-        self.details = ''
-        self.dates = [date.today(),date.today()]
-        self.arenas = []
-        self.riders = []
-        self.horses = []
-        self.combos = []
-        self.officials = []
-        self.jumpclasses = []
-        self.rounds = []
-        self.last_save = datetime(1984,4,4, 13, tzinfo=timezone.utc)
-        self.last_change = datetime.now(timezone.utc)
-        self.filename = None
+    class Config:
+        validate_assignment = True
+        arbitrary_types_allowed = True        
+
+    # def __init__(self, event_name):
+    #     self.name = event_name
+    #     self.details = ''
+    #     self.dates = [date.today(),date.today()]
+    #     self.arenas = []
+    #     self.riders = []
+    #     self.horses = []
+    #     self.combos = []
+    #     self.officials = []
+    #     self.jumpclasses = []
+    #     self.rounds = []
+    #     self.last_save = datetime(1984,4,4, 13, tzinfo=timezone.utc)
+    #     self.last_change = datetime.now(timezone.utc)
+    #     self.filename = None
 
 
     def update(self):

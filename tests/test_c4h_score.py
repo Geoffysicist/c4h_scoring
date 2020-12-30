@@ -7,7 +7,7 @@ import time
 
 @pytest.fixture
 def mock_event():
-    mock_event = c4h.C4HEvent('Baccabuggry World Cup')
+    mock_event = c4h.C4HEvent(name='Baccabuggry World Cup')
     arena = mock_event.new_arena(id='1')
     rider = mock_event.new_rider(forename='Andi', surname='Gravity')
     horse = mock_event.new_horse(name='Topless')
