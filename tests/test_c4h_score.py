@@ -1,6 +1,6 @@
 import pytest
-from ..C4HScore import score as c4h #import C4HEvent
-from ..C4HScore import score_helpers
+from ..C4HScore import score as c4h
+from ..C4HScore import score_helpers as sh
 import time
 # import yaml
 
@@ -47,8 +47,14 @@ def test_C4HEvent_new_arena(mock_event):
     assert type(arena) == score_helpers.C4HArena
     assert arena.id == '2'
 
-# def test_C4HEvent_new_rider(mock_event):
-#     assert type(mock_event.new_rider()) == c4h._C4HRider
+def test_C4HEvent_new_rider(mock_event):
+    assert type(mock_event.new_rider()) == c4h.C4HRider
+    assert mock_event.new_rider(forename='fred').forename == 'fred'
+    assert mock_event.new_rider(ea_number='1234567')
+    num = '12345678'
+    with pytest.raises(ValueError) as e:
+        mock_event.new_rider(ea_number=num)
+    assert str(e.value) == f'Rider EA number should be 7 not {len(num)} digits long'
     
 # # TODO start here
 # def test_C4HEvent_new_horse(mock_event):

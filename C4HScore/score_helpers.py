@@ -47,51 +47,51 @@ class C4HRider(object):
         ea_number (string): This must 7 numerical digits
     '''
     event: Any
-    _surname: str = ''
-    _given_name: str = ''
-    _ID: uuid.UUID = uuid.uuid1()
-    _ea_number: str = ''
+    surname: str = ''
+    forename: str = ''
+    ID: uuid.UUID = uuid.uuid1()
+    ea_number: str = ''
 
-    @property
-    def surname(self):
-        return self._surname
+    # @property
+    # def surname(self):
+    #     return self._surname
 
-    @surname.setter
-    def surname(self, surname):
-        if self.event.get_objects(
-            self.event.riders, surname=surname, given_name=self.given_name
-            ):
-            raise ValueError(f"Rider named {surname}, {self.given_name} already exists")
+    # @surname.setter
+    # def surname(self, surname):
+    #     if self.event.get_objects(
+    #         self.event.riders, surname=surname, given_name=self.given_name
+    #         ):
+    #         raise ValueError(f"Rider named {surname}, {self.given_name} already exists")
         
-        self._surname = surname
-        return self._surname
+    #     self._surname = surname
+    #     return self._surname
 
-    @property
-    def given_name(self):
-        return self._given_name
+    # @property
+    # def given_name(self):
+    #     return self._given_name
 
-    @given_name.setter
-    def given_name(self, given_name):
-        if self.event.get_objects(
-            self.event.riders, surname=self.surname, given_name=given_name
-            ):
-            raise ValueError(f"Rider named {self.surname}, {given_name} already exists")
+    # @given_name.setter
+    # def given_name(self, given_name):
+    #     if self.event.get_objects(
+    #         self.event.riders, surname=self.surname, given_name=given_name
+    #         ):
+    #         raise ValueError(f"Rider named {self.surname}, {given_name} already exists")
         
-        self._given_name = given_name
-        return self._given_name
+    #     self._given_name = given_name
+    #     return self._given_name
 
-    @property
-    def ea_number(self):
-        return self._ea_number
+    # @property
+    # def ea_number(self):
+    #     return self._ea_number
 
-    @ea_number.setter
-    def ea_number(self, ea_number):
-        if ea_number.isnumeric() and (len(ea_number) == 7):
-            self._ea_number = ea_number
-        else:
-            raise ValueError(f'Rider EA number should be 7 not {len(ea_number)} digits long')
+    # @ea_number.setter
+    # def ea_number(self, ea_number):
+    #     if ea_number.isnumeric() and (len(ea_number) == 7):
+    #         self._ea_number = ea_number
+    #     else:
+    #         raise ValueError(f'Rider EA number should be 7 not {len(ea_number)} digits long')
         
-        return self._ea_number
+    #     return self._ea_number
 
 
 @dataclass(config=Config)

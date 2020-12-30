@@ -134,6 +134,7 @@ class C4HEvent(object):
 
     def new_arena(self, **kwargs) -> C4HArena:
         """creates a new arena and appends it to the arena list.
+        
         The arena is given automatically a unique ID. All other
         attributes can bet set at initiation using kwargs.
     
@@ -149,18 +150,21 @@ class C4HEvent(object):
 
         return a
     
-    def new_rider(self, **kwargs):
-        '''creates a new rider and appends it to the rider list.
-
-        It seems odd to initialise these attribures with None but I want
-        users to be able to enter some data if they don't know all of it.
-        They may know the given name but not the surname or vice versa
+    def new_rider(self, **kwargs) -> C4HRider:
+        """creates a new rider and appends it to the rider list..
+        
+        The rider is given automatically a unique ID. All other
+        attributes can bet set at initiation using kwargs.
 
         Args:
+            surname (str):
+            given_name (str):
+            ea_number (str): This must 7 numerical digits
 
         Returns:
             C4HRider
-        '''
+        """
+
         r = C4HRider(self)
         self.set_object(r, **kwargs)
         self.riders.append(r)
