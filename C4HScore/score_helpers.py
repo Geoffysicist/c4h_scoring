@@ -8,11 +8,15 @@ All unit tests are performed through C4hEvent
 import uuid
 import yaml
 import dataclasses
-from typing import List, Any
-from pydantic import BaseModel, validator, ValidationError, PydanticValueError
+from typing import Any
+from pydantic import validator
 from pydantic.dataclasses import dataclass
 from ..C4HScore import score as c4h
 
+def is_C4HEvent(event) -> bool:
+    if not isinstance(event, c4h.C4HEvent):
+        raise TypeError('Event must be a C4HEvent')
+    return isinstance(event, c4h.C4HEvent)
 
 class Config:
     """This defines the configuration for all the dataclasses.
@@ -29,11 +33,8 @@ class C4HArena(object):
     name: str = ''
     ID: uuid.UUID = dataclasses.field(default=uuid.uuid1(), compare=False)
 
-    # @validator('event')
-    # def is_event(cls, val):
-    #     event = values['event']
-    #     if event.get_objects(event.arenas, id=val):
-    #         raise ValueError(f'Arena with id {val} already exists')
+    # validators
+    _valid_event = validator('event', allow_reuse=True)(is_C4HEvent)
 
 
 @dataclass(config=Config)
@@ -52,6 +53,9 @@ class C4HRider:
     forename: str = ''
     ID: uuid.UUID = uuid.uuid1()
     ea_number: str = ''
+
+    # validators
+    _valid_event = validator('event', allow_reuse=True)(is_C4HEvent)
 
     @validator('ea_number')
     def seven_digit_numerical(cls, val):
@@ -81,6 +85,9 @@ class C4HHorse:
     ea_number: str = ''
     ID: uuid.UUID = uuid.uuid1()
 
+    # validators
+    _valid_event = validator('event', allow_reuse=True)(is_C4HEvent)
+
     @validator('ea_number')
     def seven_digit_numerical(cls, val):
         # pass
@@ -98,57 +105,26 @@ class C4HCombo:
 
     Attributes:
         id (int): #TODO ensure unique id for combination
-        _ID (uuid.UUID):
+        ID (uuid.UUID):
         rider (_C4HRider):
         horse (_C4HHorse):
     '''
 
     event: Any
-    rider: C4HRider
-    horse: C4HHorse
+    rider: C4HRider = None
+    horse: C4HHorse = None
     id: str = ''
-    ID: uuid.uuid1 = uuid.uuid1()        
+    ID: uuid.UUID = uuid.uuid1()
 
-    @property
-    def id(self):
-        return self._id
-    
-    @id.setter
-    def id(self, id):
-        if self.event.get_objects(self.event.combos,id=id):
-            raise ValueError(f"Combo with id {id} already exists")
+    # validators
+    _valid_event = validator('event', allow_reuse=True)(is_C4HEvent)
 
-        self._id = id
-        return self._id
-
-    @property
-    def rider(self):
-        return self._rider
-
-    @rider.setter
-    def rider(self, rider):
-        if self.event.get_objects(
-            self.event.combos, rider=rider, horse=self.horse
-            ):
-            raise ValueError(f'Combo: {rider.surname} {rider.given_name} riding {self.horse.name} already exists')
-
-        self._rider = rider
-
-    @property
-    def horse(self):
-        return self._horse
-
-    @horse.setter
-    def horse(self, horse):
-
-        if self.event.get_objects(
-            self.event.combos, rider=self.rider, horse=horse
-            ):
-            raise ValueError(f'Combo: {self.rider.surname} {self.rider.given_name} riding {horse.name} already exists')
-
-        self._horse = horse
-
-
+    @validator('event')   
+    def is_C4HEvent(cls, val):
+        if not isinstance(val, c4h.C4HEvent):
+            raise TypeError('Event must be a C4HEvent')
+        
+        return val
 
 
 @dataclass(config=Config)

@@ -9,8 +9,8 @@ import time
 def mock_event():
     mock_event = c4h.C4HEvent('Baccabuggry World Cup')
     arena = mock_event.new_arena(id='1')
-    # rider = mock_event.new_rider(given_name='Bob', surname='Down')
-    # horse = mock_event.new_horse(name='Topless')
+    rider = mock_event.new_rider(forename='Andi', surname='Gravity')
+    horse = mock_event.new_horse(name='Topless')
     # combo = mock_event.new_combo(rider, horse)
     
     return mock_event
@@ -44,12 +44,15 @@ def test_C4HEvent_get_objects(mock_event):
 
 def test_C4HEvent_new_arena(mock_event):
     arena = mock_event.new_arena(id='2')
-    assert type(arena) == sh.C4HArena
+    assert isinstance(arena, sh.C4HArena)
     assert arena.id == '2'
+    with pytest.raises(ValueError) as e:
+        arena.event = 'Foo'
+    assert 'Event must be a C4HEvent' in str(e.value)
 
 def test_C4HEvent_new_rider(mock_event):
-    assert type(mock_event.new_rider()) == c4h.C4HRider
-    name = 'fred'
+    assert isinstance(mock_event.new_rider(), sh.C4HRider)
+    name = 'Bluey'
     assert mock_event.new_rider(forename=name).forename == name
     num = '1234567'
     assert mock_event.new_rider(ea_number=num)
@@ -65,10 +68,13 @@ def test_C4HEvent_new_rider(mock_event):
     with pytest.raises(ValueError) as e:
         mock_event.new_rider(ea_number=num)
     assert 'EA Number may only constist of digits' in str(e.value)
+    with pytest.raises(ValueError) as e:
+        mock_event.new_rider(event='Foo')
+    assert 'Event must be a C4HEvent' in str(e.value)
     
 def test_C4HEvent_new_horse(mock_event):
     name = "Heffalump"
-    assert type(mock_event.new_horse()) == c4h.C4HHorse
+    assert isinstance(mock_event.new_horse(), sh.C4HHorse)
     assert mock_event.new_horse(name='Heffalump').name == name
     num = '12345678'
     assert mock_event.new_horse(ea_number=num)
@@ -84,12 +90,22 @@ def test_C4HEvent_new_horse(mock_event):
     with pytest.raises(ValueError) as e:
         mock_event.new_horse(ea_number=num)
     assert 'EA Number may only constist of digits' in str(e.value)
+    with pytest.raises(ValueError) as e:
+        mock_event.new_rider(event='Foo')
+    assert 'Event must be a C4HEvent' in str(e.value)
 
-# # TODO start here
 def test_C4HEvent_new_combo(mock_event):
-    pass
+    assert isinstance(mock_event.new_combo(), sh.C4HCombo)
+    rider = mock_event.new_rider(forename='Bluey', surname='Zarzhoff')
+    horse = mock_event.new_horse(name='Nadzoff')
+    combo = mock_event.new_combo(rider=rider, horse=horse)
+    assert isinstance(combo, sh.C4HCombo)
+    assert combo.rider.surname == 'Zarzhoff'
+    with pytest.raises(ValueError) as e:
+        combo.event = 'Foo'
+    assert 'Event must be a C4HEvent' in str(e.value)
 
-
+# TODO start here
 # def test_C4HEvent_new_official(mock_event):
 #     surname = "Hunt"
 #     given = "Mike"

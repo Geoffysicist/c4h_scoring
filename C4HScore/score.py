@@ -4,23 +4,12 @@
 
 """
 
-import json
 from typing import List, Any
 import yaml
-# import csv
-# import uuid
 import copy
-# import dataclasses
 
 from datetime import date, datetime, timezone
-# from typing import List
-# from pydantic import BaseModel, validator, ValidationError
-# from pydantic.dataclasses import dataclass
 from .score_helpers import *
-
-# from dataclasses import dataclass, field
-
-# INDENT = '  ' #indent used for output
 
 class C4HEvent(object):
     '''Equestrian Event.
@@ -69,7 +58,7 @@ class C4HEvent(object):
             kwargs: Can be any attribute of the obj.
     
         Returns:
-            True for success, False otherwise.
+            bool: success or otherwise.
 
         Example:
             this_event.set_object(arena1, name='Main Arena')
@@ -172,15 +161,18 @@ class C4HEvent(object):
 
         return r
     
-    def new_horse(self, **kwargs):
+    def new_horse(self, **kwargs) -> C4HHorse:
         '''creates a new horse and appends it to the _horses list.
+
+        The horse is given automatically a unique ID. All other
+        attributes can bet set at initiation using kwargs.
 
         Args:
             name (str): 
             ea_number (int): length must be 8 digits
 
         Returns:
-            _C4HHorse
+            C4HHorse
         '''
         h = C4HHorse(self)
         self.set_object(h, **kwargs)
@@ -189,21 +181,23 @@ class C4HEvent(object):
 
         return h
 
-    def new_combo(self, rider, horse, **kwargs):
+    def new_combo(self, **kwargs) -> C4HCombo:
         '''creates a new combination and appends it to the combo list.
+        The combo is given automatically a unique ID. All other
+        attributes can bet set at initiation using kwargs.
 
         Args:
-            rider (_C4HRider): 
-            horse (_C4HHorse):
+            rider (C4HRider): 
+            horse (C4HHorse):
             id (str):
         
         Returns:
             C4HCombo
         '''
-        c = C4HCombo(self, rider, horse)
+        c = C4HCombo(self)
         self.combos.append(c)
-        self.set_object(c, rider=rider, horse=horse)
         self.set_object(c, **kwargs)
+        self.combos.append(c)
         self.update()
 
         return c
@@ -216,7 +210,7 @@ class C4HEvent(object):
             given_name (string): 
 
         Returns:
-            _C4HOfficial
+            C4HOfficial
         '''
 
         if self.get_officials(surname=surname, given_name=given_name):
