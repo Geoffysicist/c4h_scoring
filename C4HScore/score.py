@@ -29,7 +29,7 @@ class C4HEvent(BaseModel):
         rounds (list[C4HRound]):
         last_save (datetime): UTC date & time the event was last saved
         last_change (datetime): UTC date and time of last change in any data
-        filename (str): the name of the event file. None for unsaved events
+        filename (Path): the name of the event file. None for unsaved events
     '''
     name: str
     details:  str = ''
