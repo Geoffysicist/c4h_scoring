@@ -1,0 +1,6 @@
+site_name: Courses4Horses
+
+theme:
+  name: material
+  palette:
+    primary: green
