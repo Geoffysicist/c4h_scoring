@@ -8,10 +8,12 @@ from typing import List, Any
 import yaml
 import copy
 
+from pathlib import Path
 from datetime import date, datetime, timezone
 from .score_helpers import *
+from pydantic import BaseModel
 
-class C4HEvent(object):
+class C4HEvent(BaseModel):
     '''Equestrian Event.
 
     Attributes:
@@ -27,24 +29,25 @@ class C4HEvent(object):
         rounds (list[C4HRound]):
         last_save (datetime): UTC date & time the event was last saved
         last_change (datetime): UTC date and time of last change in any data
-        filename (str): the name of the event file. None for unsaved events
+        filename (Path): the name of the event file. None for unsaved events
     '''
+    name: str
+    details:  str = ''
+    dates: List[date] = [date.today(),date.today()]
+    arenas: List[C4HArena] = []
+    riders: List[C4HRider] = []
+    horses: List[C4HHorse] = []
+    combos: List[C4HCombo] = []
+    officials: List[C4HOfficial] = []
+    jumpclasses: List[C4HJumpClass] = []
+    rounds: List[C4HRound] = []
+    last_save: datetime = datetime(1984,4,4, 13, tzinfo=timezone.utc)
+    last_change: datetime = datetime.now(timezone.utc)
+    filename: Path = None
 
-    def __init__(self, event_name):
-        self.name = event_name
-        self.details = ''
-        self.dates = [date.today(),date.today()]
-        self.arenas = []
-        self.riders = []
-        self.horses = []
-        self.combos = []
-        self.officials = []
-        self.jumpclasses = []
-        self.rounds = []
-        self.last_save = datetime(1984,4,4, 13, tzinfo=timezone.utc)
-        self.last_change = datetime.now(timezone.utc)
-        self.filename = None
-
+    class Config:
+        validate_assignment = True
+        arbitrary_types_allowed = True        
 
     def update(self):
         self.last_change = datetime.now(timezone.utc)
@@ -195,52 +198,30 @@ class C4HEvent(object):
             C4HCombo
         '''
         c = C4HCombo(self)
-        self.combos.append(c)
         self.set_object(c, **kwargs)
         self.combos.append(c)
         self.update()
 
         return c
     
-    def new_official(self, surname, given_name):
+    def new_official(self, **kwargs) -> C4HOfficial:
         '''creates a new official and appends it to the rider list.
+        All attributes can bet set at initiation using kwargs.
 
         Args:
-            surname (string): 
-            given_name (string): 
+            surname (str): 
+            forename (str): 
 
         Returns:
             C4HOfficial
         '''
 
-        if self.get_officials(surname=surname, given_name=given_name):
-            raise ValueError(f"Official {surname} {given_name} already exists")
-
-        o = C4HOfficial(surname=surname, given_name=given_name)
+        o = C4HOfficial()
+        self.set_object(o, **kwargs)
         self.officials.append(o)
         self.update()
 
         return o
-
-    def get_officials(self, **kwargs):
-        '''Find official matching kwargs.
-
-        keyword args:
-            surname (str)
-            given_name (str): 
-            judge (bool):
-            cd (bool):
-
-        Returns:
-            list[_C4HOfficial] list empty if no matches.
-            List contains all officials if no kwargs
-        '''
-        officials = self.officials
-        for key, val in kwargs.items():
-            officials = [o for o in officials if getattr(o,key) == val]
-        
-        return officials
-
 
     def new_jumpclass(self):
         pass

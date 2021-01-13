@@ -11,7 +11,7 @@ import dataclasses
 from typing import Any
 from pydantic import validator
 from pydantic.dataclasses import dataclass
-from ..C4HScore import score as c4h
+from . import score as c4h
 
 def is_C4HEvent(event) -> bool:
     if not isinstance(event, c4h.C4HEvent):
@@ -104,10 +104,10 @@ class C4HCombo:
     '''Rider/horse combinations.
 
     Attributes:
-        id (int): #TODO ensure unique id for combination
+        id (int):
         ID (uuid.UUID):
-        rider (_C4HRider):
-        horse (_C4HHorse):
+        rider (C4HRider):
+        horse (C4HHorse):
     '''
 
     event: Any
@@ -128,22 +128,22 @@ class C4HCombo:
 
 
 @dataclass(config=Config)
-class C4HOfficial(object):
+class C4HOfficial:
     '''Official details.
 
     Attributes:
         surname (str):
-        given_name (str): 
+        forename (str): 
         judge (bool): default True
         cd (bool): default False
     '''
-    surname: str
-    given_name: str
+    surname: str = ''
+    forename: str = ''
     judge: bool = True
     cd: bool = False
 
 @dataclass(config=Config)
-class C4HJumpClass(object):
+class C4HJumpClass:
     '''A show jumping class.
 
     Attributes:
