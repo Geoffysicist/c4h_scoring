@@ -4,3 +4,12 @@ theme:
   name: material
   palette:
     primary: green
+  
+  favicon: assets/courses4horses_logo_bare.png
+
+  logo: assets/courses4horses_logo_bare.png
+
+  font:
+    text: Raleway
+
+repo_url: https://github.com/Geoffysicist/Courses4Horses
