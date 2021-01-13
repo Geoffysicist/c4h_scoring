@@ -106,12 +106,6 @@ def test_C4HEvent_new_combo(mock_event):
     assert 'Event must be a C4HEvent' in str(e.value)
 
 # TODO start here
-# def test_C4HEvent_new_official(mock_event):
-#     surname = "Hunt"
-#     given = "Mike"
-#     new_official = mock_event.new_official(surname, given)
-#     assert type(new_official) == c4h._C4HOfficial
-
-#     with pytest.raises(ValueError) as e:
-#         mock_event.new_official(surname, given)
-#     assert str(e.value) == "Official Hunt Mike already exists"
+def test_C4HEvent_new_official(mock_event):
+    new_official = mock_event.new_official(forename='Mike', surname='Hunt')
+    assert isinstance(new_official, sh.C4HOfficial)

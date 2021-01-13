@@ -4,9 +4,7 @@
 import tkinter as tk
 import tkcalendar as cal
 import ctypes
-# import c4h_score
 
-# from c4h_score import C4HEvent
 from .score import C4HEvent
 from tkinter import ttk, filedialog, messagebox
 from datetime import date
@@ -15,7 +13,6 @@ from datetime import date
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 class C4HScoreGUI(ttk.Notebook):
-    #TODO change this to a ttk.Notebook object
     ''' Big container for the rest of the stuff.
 
     Attributes:
@@ -34,9 +31,7 @@ class C4HScoreGUI(ttk.Notebook):
         self.favicon = tk.PhotoImage(file='assets/courses4horses_logo_bare.png')
         self.master.iconphoto(False, self.favicon)
         self.master.geometry('1600x1200')
-        # self.mainframe = ttk.Notebook(self.master)
-        # self.mainframe.grid(row=0, column=0, sticky="NSEW")
-        self.grid(row=0, column=0, sticky="NSEW")
+        # self.grid(row=0, column=0, sticky="NSEW")
         self.master.grid_rowconfigure(0, weight=1)
         self.master.grid_columnconfigure(0, weight=1)
         
@@ -94,7 +89,7 @@ class C4HScoreGUI(ttk.Notebook):
         """Opens a new event dialog."""
         if self.event_check_saved() == 'cancelled': return
 
-        self.event = C4HEvent('New Event')
+        self.event = C4HEvent(name='New Event')
         self.event_edit()
 
     def event_open(self):
