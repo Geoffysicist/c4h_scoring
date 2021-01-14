@@ -27,5 +27,10 @@ Showjumping support services including:
 
 Travel: 50c per km
 
-## What else
+## Other stuff
+
+* Farmtek/JJD cables - we supply cables that link Farmtek Polaris timing consoles to your computer for use with JJD scoring software. Cables are $20 plus postage.
 * [Scoring sheets](assets/downloads/C4H_judging_sheets.pdf) for single round, jump-off and 2 phase competitions (free download)
+
+## Getting in touch
+The best way to get in touch is by email. Click on the envelope symbol on the footer of this page (sorry to be so obtuse but I am trying to avoid web bots).
