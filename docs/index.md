@@ -24,4 +24,4 @@ Showjumping support services including:
 | Course Design and Judging | $280 |
 
 ## What else
-* [Scoring sheets](/assets/downloads/C4H_judging_sheets.pdf){:target="_blank"} for single round, jump-off and 2 phase competitions (free download)
+* [Scoring sheets](/assets/downloads/C4H_judging_sheets.pdf) for single round, jump-off and 2 phase competitions (free download)
