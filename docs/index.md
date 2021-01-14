@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Home
+title: Welcome to Courses4Horses
 ---
 ## What
 
@@ -12,8 +12,8 @@ Showjumping support services including:
 
 **Geoff Goldrick** an experienced, accredited course designer (FEI Level 1 and EA Level 2) and an accredited showjumping judge (EA Level 1).
 
-| ![FEI Logo](/assets/images/FEI_Logo.png) | ![EA Logo](/assets/images/EA_logo.png)|
-|:-----:|:-----:|
+![FEI Logo](assets/images/FEI_Logo.png) ![EA Logo](assets/images/EA_logo.png)|
+
 
 ## How Much
 
@@ -24,4 +24,4 @@ Showjumping support services including:
 | Course Design and Judging | $280 |
 
 ## What else
-* [Scoring sheets](/assets/downloads/C4H_judging_sheets.pdf) for single round, jump-off and 2 phase competitions (free download)
+* [Scoring sheets](assets/downloads/C4H_judging_sheets.pdf) for single round, jump-off and 2 phase competitions (free download)
