@@ -3,13 +3,22 @@ site_name: Courses4Horses
 theme:
   name: material
   palette:
+    scheme: c4h
     primary: green
   
-  favicon: assets/courses4horses_logo_bare.png
+  favicon: assets/images/favicon.png
 
   logo: assets/courses4horses_logo_bare.png
 
   font:
     text: Raleway
 
+  features:
+    - toc.integrate
+
+
 repo_url: https://github.com/Geoffysicist/Courses4Horses
+
+extra_css:
+  - stylesheets/c4h.css
+
