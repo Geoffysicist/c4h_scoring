@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-      - mkdocs
+      - website
 jobs:
   deploy:
     runs-on: ubuntu-latest
