@@ -19,6 +19,12 @@ theme:
 
 repo_url: https://github.com/Geoffysicist/Courses4Horses
 
+extra:
+  social:
+    - icon: fontawesome/solid/envelope
+      link: mailto:<&#103;&#101;&#111;&#102;&#102;&#046;&#103;&#111;&#108;&#100;&#114;&#105;&#099;&#107;&#064;&#103;&#109;&#097;&#105;&#108;&#046;&#099;&#111;&#109;>
+      text: Contact Courses4Horses
+
 extra_css:
   - stylesheets/c4h.css
 
