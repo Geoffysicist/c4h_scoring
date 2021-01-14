@@ -19,6 +19,10 @@ theme:
 
 repo_url: https://github.com/Geoffysicist/Courses4Horses
 
+markdown_extensions:
+  - attr_list
+
+
 extra:
   social:
     - icon: fontawesome/solid/envelope
