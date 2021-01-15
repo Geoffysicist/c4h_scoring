@@ -17,7 +17,7 @@ theme:
     - toc.integrate
 
 
-repo_url: https://github.com/Geoffysicist/Courses4Horses
+# repo_url: https://github.com/Geoffysicist/Courses4Horses
 
 markdown_extensions:
   - attr_list
@@ -25,6 +25,10 @@ markdown_extensions:
 
 extra:
   social:
+    - icon: fontawesome/brands/facebook
+      link: https://www.facebook.com/courses4horses
+      text: Courses4Horse on Facebook
+
     - icon: fontawesome/solid/envelope
       link: https://mailhide.io/e/3Y8Bp043
       text: Contact Courses4Horses
