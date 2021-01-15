@@ -32,5 +32,5 @@ Travel: 50c per km
 ## Other stuff
 
 * Farmtek/JJD cables - we supply cables that link [Farmtek Polaris](https://farmtek.net/polaris.html) timing consoles to your computer for use with [JJD scoring software](http://equussentials.com/software/default.html). Cables are $20 plus postage.
-* [Scoring sheets](/docs/assets/downloads/C4H_judging_sheets.pdf){:target="_blank"} for single round, jump-off and 2 phase competitions (free download)
+* [Scoring sheets](assets/downloads/C4H_judging_sheets.pdf){:target="_blank"} for single round, jump-off and 2 phase competitions (free download)
 
