@@ -1,9 +1,17 @@
 {
-    "python.pythonPath": "c:\\Users\\Geoffysicist\\Projects\\Courses4Horses\\.venv\\Scripts\\python.exe",
+    "python.pythonPath": ".venv\\Scripts\\python.exe",
     "python.testing.pytestArgs": [
         "tests"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "restructuredtext.confPath": "${workspaceFolder}\\docs\\source",
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./tests",
+        "-p",
+        "test_*.py"
+    ]
 }

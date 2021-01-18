@@ -1,0 +1,186 @@
+--- # Articles
+EA:
+- _id: 238.2.1
+  description: One Round Against the Clock Table A
+  alt_name: AM5
+  rounds:
+    - num: 1
+      table: A
+      against_clock: True
+      jumps:
+      - combinations: allowed
+  jumpoffs:
+    - num: 0
+
+- _id: 238.2.2
+  description: Jump-off Competition
+  alt_name: AM5
+  rounds:
+    - num: 1
+      table: A
+      against_clock: True
+      jumps:
+      - combinations: allowed
+  jumpoffs:
+    - num: 1
+      table: A or C
+      against_clock: True
+      jumps:
+      - num: less than rounds
+        combinations: required if in rounds
+  sub_arts:
+    - _id: 245.3
+      description: Immediate Jump-off Competition
+      alt_name: AM7
+
+- _id: 239
+  description: One Round Against the Clock Table C
+  alt_name: Scurry
+  rounds:
+    - num: 1
+      table: C
+      against_clock: True
+      jumps:
+      - combinations: allowed
+  jumpoffs:
+    - num: 0
+        
+- _id: 261.5
+  description: Grand Prix
+  rounds:
+    - table: A
+      against_clock: 
+      jumps:
+      - combinations: allowed
+  jumpoffs:
+    - num: 
+      table: A
+      against_clock: True
+      jumps:
+      - num: less than rounds
+        combinations: required if in rounds
+  sub_arts:
+    - _id: 1
+      rounds:
+      - num: 1
+      jumpoffs:
+      - num: 1-2
+    - _id: 2
+      rounds:
+      - num: 2
+      jumpoffs:
+      - num: 1
+    - _id: 3
+      rounds:
+      - num: 2
+        against_clock: 2nd round
+      jumpoffs:
+      - num: 0
+
+- _id: 262
+  description: Power & Skill
+  rounds:
+    - num: 1
+      table: A
+      against_clock: False
+      jumps:
+      - combinations: False
+  jumpoffs:
+    - num: 4
+      table: A
+      against_clock: False
+      jumps:
+      - combinations: False
+  sub_arts:
+    - _id: 2
+      description: Puissance
+      rounds:
+        - jumps:
+          - num: 4-6
+      jumpoffs:
+        - jumps:
+          - num: 2
+    - _id: 3
+      description: Six Bar
+      rounds:
+        - jumps:
+          - num: 6
+      jumpoffs:
+        - jumps:
+          - num: 6 (May be 4 after 1st jo)
+          
+- _id: 269
+  description: Accumulator
+  rounds:
+    - num: 1
+      table: A
+      against_clock: True
+      jumps:
+      - num: 6, 8, 10
+        combinations: False
+        jokers: 1-2
+
+- _id: 274.1
+  description: Two Phase
+  rounds: 
+    - num: 1
+      table: A
+      jumps:
+      - num: 7-9
+        combinations: allowed
+  jumpoffs:
+    - num: 1
+      jumps:
+      - num: 4-6
+        combinations: allowed
+  sub_arts:
+    - _id: 5.1
+      rounds:
+      - table: A
+        against_clock: False
+      jumpoffs:
+      - table: A
+        against_clock: False
+    - _id: 5.2
+      rounds:
+      - table: A
+        against_clock: False
+      jumpoffs:
+      - table: A
+        against_clock: True
+    - _id: 5.3
+      rounds:
+      - table: A
+        against_clock: True
+      jumpoffs:
+      - table: A
+        against_clock: True
+    - _id: 5.4
+      rounds:
+      - table: A
+        against_clock: False
+      jumpoffs:
+      - table: C
+    - _id: 5.1
+      rounds:
+      - table: A
+        against_clock: True
+      jumpoffs:
+      - table: C
+
+- _id: 274.2
+  description: Super Two Phase
+  rounds: 
+    - num: 1
+      table: A
+      against_clock: False
+      jumps:
+      - num: 5-7
+        combinations: allowed
+  jumpoffs:
+    - num: 1
+      table: A
+      against_clock: True
+      jumps:
+      - num: 11-13 tot
+        combinations: allowed
