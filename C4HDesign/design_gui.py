@@ -31,7 +31,8 @@ class C4HDesignGUI(ttk.Notebook):
         self.favicon = tk.PhotoImage(file='assets/courses4horses_logo_bare.png')
         self.master.iconphoto(False, self.favicon)
         self.master.geometry('1600x1200')
-        self.grid(row=0, column=0, sticky="NSEW")
+        # self.grid(row=0, column=0, sticky="NSEW")
+        self.grid(row=0, column=0, sticky="NW")
         self.master.grid_rowconfigure(0, weight=1)
         self.master.grid_columnconfigure(0, weight=1)
 
@@ -48,7 +49,8 @@ class C4HDesignGUI(ttk.Notebook):
         # new_frame = ttk.Frame(self)
         this_canvas = C4HCanvas(self)
 
-        this_canvas.grid(column=0, row=0, sticky="NSEW")
+        # this_canvas.grid(column=0, row=0, sticky="NSEW")
+        this_canvas.grid(column=0, row=0, sticky="NW")
         self.add(this_canvas, text="Canvas 1")
         return this_canvas
 
@@ -58,6 +60,7 @@ class C4HCanvas(Canvas):
         super().__init__(parent, **kwargs)
         self.bind("<Button-1>", self.save_posn)
         self.bind("<B1-Motion>", self.add_line)
+        self.config(width=800, height=500)
         
     def save_posn(self, event):
         self.lastx, self.lasty = event.x, event.y
