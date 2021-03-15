@@ -3,6 +3,7 @@
 
 import tkinter as tk
 # import tkcalendar as cal
+from PIL import ImageTk, Image
 import ctypes
 
 # from .score import C4HEvent
@@ -30,7 +31,7 @@ class C4HDesignGUI(ttk.Notebook):
         self.master.title(self.title)
         self.favicon = tk.PhotoImage(file='assets/courses4horses_logo_bare.png')
         self.master.iconphoto(False, self.favicon)
-        self.master.geometry('1600x1200')
+        self.master.geometry('2400x1800')
         # self.grid(row=0, column=0, sticky="NSEW")
         self.grid(row=0, column=0, sticky="NW")
         self.master.grid_rowconfigure(0, weight=1)
@@ -41,17 +42,17 @@ class C4HDesignGUI(ttk.Notebook):
 
         # the event menu
         self.eventmenu = tk.Menu(self.menubar, tearoff=0)
-        self.eventmenu.add_command(label="New", command=self.canvas_new)
+        self.eventmenu.add_command(label="New", command=self.plan_new)
         self.menubar.add_cascade(label="Canvas", menu=self.eventmenu)
         self.master.config(menu=self.menubar)
 
-    def canvas_new(self):
+    def plan_new(self):
         # new_frame = ttk.Frame(self)
         this_canvas = C4HCanvas(self)
 
         # this_canvas.grid(column=0, row=0, sticky="NSEW")
         this_canvas.grid(column=0, row=0, sticky="NW")
-        self.add(this_canvas, text="Canvas 1")
+        self.add(this_canvas, text="Plan 1")
         return this_canvas
 
 
@@ -60,7 +61,8 @@ class C4HCanvas(Canvas):
         super().__init__(parent, **kwargs)
         self.bind("<Button-1>", self.save_posn)
         self.bind("<B1-Motion>", self.add_line)
-        self.config(width=800, height=500)
+        self.config(width=1600, height=1000, background="white")
+
         
     def save_posn(self, event):
         self.lastx, self.lasty = event.x, event.y
