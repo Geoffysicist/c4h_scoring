@@ -6,8 +6,8 @@ import tkinter as tk
 from PIL import ImageTk, Image
 import ctypes
 
-# from .score import C4HEvent
-from tkinter import ttk, filedialog, messagebox, Canvas, Frame
+from .design import C4HCanvas
+from tkinter import ttk#, filedialog, messagebox, Canvas, Frame
 # from datetime import date
 
 # makes dpi aware so tkinter text isnt blurry
@@ -56,18 +56,5 @@ class C4HDesignGUI(ttk.Notebook):
         return this_canvas
 
 
-class C4HCanvas(Canvas):
-    def __init__(self, parent, **kwargs):
-        super().__init__(parent, **kwargs)
-        self.bind("<Button-1>", self.save_posn)
-        self.bind("<B1-Motion>", self.add_line)
-        self.config(width=1600, height=1000, background="white")
 
-        
-    def save_posn(self, event):
-        self.lastx, self.lasty = event.x, event.y
-
-    def add_line(self, event):
-        self.create_line((self.lastx, self.lasty, event.x, event.y))
-        self.save_posn(event)
 

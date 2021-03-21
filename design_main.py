@@ -1,6 +1,5 @@
 from ttkthemes import ThemedTk
 from C4HDesign import design_gui as c4h
-# import C4HScore as c4h
 
 if __name__ == "__main__":
 
