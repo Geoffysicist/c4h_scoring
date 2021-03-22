@@ -18,15 +18,26 @@ class Config:
     arbitrary_types_allowed = True
 
 @dataclass(config=Config)
-class C4HJump(object):
-    '''A jump.'''
+class C4HComponent(object):
+    """Components of a jump or obstacle.
 
-    id: int = 0
+    id is the canvas id of the component
+    ref_coord are the coords of the component when the rotation angle is 0.
+    """
+    id: int
+    type: str
+    ref_coords: List[int] = dataclasses.field(default_factory=lambda: [])
+
+@dataclass(config=Config)
+class C4HObstacle(object):
+    """A obstacle consisting of C4HComponents.
+    
+    may be a jump, island or even start finish lines"""
+
     number: str = ''
-    shape: str = ''
-    component_ids: List[int] = dataclasses.field(default_factory=lambda: [])
-    
-    
+    components: List[C4HComponent] = dataclasses.field(default_factory=lambda: [])
+    pivot: List[int] = dataclasses.field(default_factory=lambda: [])
+
 
 if __name__ == '__main__':
     print('design_helpers done!')

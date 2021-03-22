@@ -1,13 +1,16 @@
+import tkinter as tk
 from tkinter import Canvas
 from .design_helpers import *
+from math import radians, cos, sin
 
 class C4HCanvas(Canvas):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
-        self.bind("<Button-1>", self.set_focus)
+        self.bind("<Button-1>", self.select)
         self.bind("<Button-3>", self.build_vertical)
         self.bind("<B1-Motion>", self.drag)
-        self.scale = 50
+        self.bind("<Shift-B1-Motion>", self.rotate)
+        self.scale = 4
         self.jumps = []
         self.drag_data = [] #keeps track of motion when draging item
         self.focus_item = None #item which has focus in the canvas
@@ -35,41 +38,79 @@ class C4HCanvas(Canvas):
         self.update()
         return True
 
-    def set_focus(self, event):
+    def select(self, event):
         """Sets the foucs_tag ie all those items considered to have focus for moving etc.
         """
-        d = self.scale/2
+        d = self.scale * 10
         if self.find_overlapping (event.x+d, event.y+d, event.x-d, event.y-d):
             #clicked close enough to item so find closest
             id = self.find_closest(event.x, event.y)[0]
             jump = self.find_by_id(id)
             self.drag_data = [event.x, event.y]
-            self.focus_item = jump
+            self.set_focus(jump)
         else:
-            self.focus_item = None
+            self.set_focus(None)
             print("no item selected")
-        
-    def build_vertical(self, event):
-        v = C4HJump()
-        pole_coords = [event.x-self.scale, event.y, event.x+self.scale, event.y]
-        arrow_cords = [event.x, event.y+self.scale/2,event.x, event.y-self.scale]
-        v.component_ids.append(self.create_line(pole_coords, width=self.scale/10))
-        v.component_ids.append(self.create_line(arrow_cords, width=self.scale/10, fill= 'red', arrow='last'))
-        self.jumps.append(v)
-        
-        for j in self.jumps:
-            print(j.component_ids)
 
-    def find_by_id(self, id: int) -> C4HJump:
+    def set_focus(self, jump):
+        """Clears existing focus andset new focus to jump.
+        
+        if jump is None then clears all focus
+        """
+        #clear focus
+        if self.focus_item:
+            for c in self.focus_item.components:
+                if c.type in ['pivot', 'handle']:
+                    self.itemconfigure(c.id, state=tk.HIDDEN)
+            
+            self.focus_item = None
+        
+        if jump:
+            for c in jump.components:
+                if c.type in ['pivot', 'handle']:
+                    self.itemconfigure(c.id, state=tk.NORMAL)    
+
+            self.focus_item = jump
+                
+
+        
+    def build_vertical(self, event, width=36):
+        v = C4HObstacle()
+        half_width = int(width * self.scale /2)
+        quarter_width = int(width * self.scale /4)
+        pivot_coords = [event.x+quarter_width, event.y+quarter_width,event.x-quarter_width, event.y-quarter_width]
+        pivot_id = self.create_oval(pivot_coords, fill= 'light gray', state=tk.HIDDEN)
+        pivot = C4HComponent(pivot_id, 'pivot', ref_coords=pivot_coords)
+        handle_coords = [event.x+quarter_width, event.y-half_width,event.x-quarter_width, event.y-2*half_width]
+        handle_id = self.create_oval(handle_coords, fill= 'light gray', state=tk.HIDDEN)
+        handle = C4HComponent(handle_id, 'handle', ref_coords=handle_coords)
+        pole_coords = [event.x-half_width, event.y, event.x+half_width, event.y]
+        pole_id = self.create_line(*pole_coords, width=half_width/10, fill='black')
+        pole = C4HComponent(pole_id, 'pole', ref_coords=pole_coords)
+        arrow_coords = [event.x, event.y+quarter_width,event.x, event.y-half_width]
+        arrow_id = self.create_line(arrow_coords, width=half_width/10, fill= 'red', arrow='last')
+        arrow = C4HComponent(arrow_id, 'arrow', ref_coords=arrow_coords)
+        v.components.append(pivot)
+        v.components.append(handle)
+        v.components.append(pole)
+        v.components.append(arrow)
+        v.pivot = [event.x, event.y]
+        self.jumps.append(v)
+
+
+    def find_by_id(self, id: int) -> C4HObstacle:
         """Finds an element by its canvas id.
         """
-
         for j in self.jumps:
-            print(id, j.component_ids)
-            if id in j.component_ids:
-                return j
+            for c in j.components:
+                if id == c.id:
+                    return j
 
         return None
+
+    def rotate(self, event):
+        if self.focus_item:
+            print(event.x, event.y)
 
     def drag(self, event):
         """ Moves an item in the arena by dragging with the mouse.
@@ -79,10 +120,16 @@ class C4HCanvas(Canvas):
             delta_x = event.x - self.drag_data[0]
             delta_y = event.y - self.drag_data[1]
             # move the object the appropriate amount
-            for i in self.focus_item.component_ids:
-                self.move(i, delta_x, delta_y)
+            for c in self.focus_item.components:
+                self.move(c.id, delta_x, delta_y)
             # record the new position
             self.drag_data = [event.x, event.y]
+
+
+
+        
+
+
 
 if __name__ == '__main__':
     print('design done!')

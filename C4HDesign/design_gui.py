@@ -48,7 +48,7 @@ class C4HDesignGUI(ttk.Notebook):
 
     def plan_new(self):
         # new_frame = ttk.Frame(self)
-        this_canvas = C4HCanvas(self)
+        this_canvas = C4HCanvas(self,width=2200, height=1600)
 
         # this_canvas.grid(column=0, row=0, sticky="NSEW")
         this_canvas.grid(column=0, row=0, sticky="NW")
