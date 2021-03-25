@@ -78,7 +78,8 @@ class C4HCanvas(Canvas):
         v = C4HObstacle()
         half_width = int(width * self.scale /2)
         quarter_width = int(width * self.scale /4)
-        pivot_coords = [event.x+quarter_width, event.y+quarter_width,event.x-quarter_width, event.y-quarter_width]
+        # pivot_coords = [event.x+quarter_width, event.y+quarter_width,event.x-quarter_width, event.y-quarter_width]
+        pivot_coords = [event.x, event.y,event.x, event.y]
         pivot_id = self.create_oval(pivot_coords, fill= 'light gray', state=tk.HIDDEN)
         pivot = C4HComponent(pivot_id, 'pivot', ref_coords=pivot_coords)
         handle_coords = [event.x+quarter_width, event.y-half_width,event.x-quarter_width, event.y-2*half_width]
@@ -117,13 +118,17 @@ class C4HCanvas(Canvas):
         """
         if self.focus_item:
             # compute how much the mouse has moved
-            delta_x = event.x - self.drag_data[0]
-            delta_y = event.y - self.drag_data[1]
+            dx = event.x - self.drag_data[0]
+            dy = event.y - self.drag_data[1]
             # move the object the appropriate amount
-            for c in self.focus_item.components:
-                self.move(c.id, delta_x, delta_y)
-            # record the new position
+            self.translate(dx, dy)
             self.drag_data = [event.x, event.y]
+
+    def translate(self, dx, dy):       
+        for c in self.focus_item.components:
+            self.move(c.id, dx, dy)
+        # record the new position
+        
 
 
 
