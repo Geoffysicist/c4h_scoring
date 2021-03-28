@@ -12,7 +12,7 @@ class C4HCanvas(Canvas):
         self.bind("<Shift-B1-Motion>", self.rotate)
         self.scale = 4
         self.jumps = []
-        self.drag_data = [] #keeps track of motion when draging item
+        self.motion_data = [] #keeps track of motion when draging item
         self.focus_item = None #item which has focus in the canvas
         # self.items = 1 #a counter to keep track of the items created, used for tag ids
         
@@ -46,8 +46,9 @@ class C4HCanvas(Canvas):
             #clicked close enough to item so find closest
             id = self.find_closest(event.x, event.y)[0]
             jump = self.find_by_id(id)
-            self.drag_data = [event.x, event.y]
+            self.motion_data = [event.x, event.y]
             self.set_focus(jump)
+            print("here")
         else:
             self.set_focus(None)
             print("no item selected")
@@ -118,11 +119,11 @@ class C4HCanvas(Canvas):
         """
         if self.focus_item:
             # compute how much the mouse has moved
-            dx = event.x - self.drag_data[0]
-            dy = event.y - self.drag_data[1]
+            dx = event.x - self.motion_data[0]
+            dy = event.y - self.motion_data[1]
             # move the object the appropriate amount
             self.translate(dx, dy)
-            self.drag_data = [event.x, event.y]
+            self.motion_data = [event.x, event.y]
 
     def translate(self, dx, dy):       
         for c in self.focus_item.components:
