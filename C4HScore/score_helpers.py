@@ -1,8 +1,8 @@
 """ score_helpers.py - dataclasses for C4HScore.
 
 These are called by the main class C4HEvent.
-They should essentially be considered private and lnoy accessed through CH4Event methods
-All unit tests are performed through C4hEvent
+They should be considered private and only accessed through CH4Event methods
+All unit tests are performed through C4HEvent
 """
 
 import uuid
