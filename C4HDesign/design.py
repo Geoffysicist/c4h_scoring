@@ -48,7 +48,6 @@ class C4HCanvas(Canvas):
             jump = self.find_by_id(id)
             self.motion_data = [event.x, event.y]
             self.set_focus(jump)
-            print("here")
         else:
             self.set_focus(None)
             print("no item selected")
@@ -80,8 +79,8 @@ class C4HCanvas(Canvas):
         half_width = int(width * self.scale /2)
         quarter_width = int(width * self.scale /4)
         # pivot_coords = [event.x+quarter_width, event.y+quarter_width,event.x-quarter_width, event.y-quarter_width]
-        pivot_coords = [event.x, event.y,event.x, event.y]
-        pivot_id = self.create_oval(pivot_coords, fill= 'light gray', state=tk.HIDDEN)
+        pivot_coords = [event.x, event.y]
+        pivot_id = self.create_polygon(pivot_coords, state=tk.HIDDEN)
         pivot = C4HComponent(pivot_id, 'pivot', ref_coords=pivot_coords)
         handle_coords = [event.x+quarter_width, event.y-half_width,event.x-quarter_width, event.y-2*half_width]
         handle_id = self.create_oval(handle_coords, fill= 'light gray', state=tk.HIDDEN)
@@ -112,7 +111,7 @@ class C4HCanvas(Canvas):
 
     def rotate(self, event):
         if self.focus_item:
-            print(event.x, event.y)
+            pivot_coords = self.coords(self.focus_item)
 
     def drag(self, event):
         """ Moves an item in the arena by dragging with the mouse.

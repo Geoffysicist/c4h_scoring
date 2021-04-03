@@ -32,7 +32,6 @@ class C4HDesignGUI(ttk.Notebook):
         self.favicon = tk.PhotoImage(file='assets/courses4horses_logo_bare.png')
         self.master.iconphoto(False, self.favicon)
         self.master.geometry('2400x1800')
-        # self.grid(row=0, column=0, sticky="NSEW")
         self.grid(row=0, column=0, sticky="NW")
         self.master.grid_rowconfigure(0, weight=1)
         self.master.grid_columnconfigure(0, weight=1)
@@ -47,12 +46,15 @@ class C4HDesignGUI(ttk.Notebook):
         self.master.config(menu=self.menubar)
 
     def plan_new(self):
-        # new_frame = ttk.Frame(self)
-        this_canvas = C4HCanvas(self,width=2200, height=1600)
+        # this_canvas = C4HCanvas(self,width=2200, height=1600)
+        this_canvas = C4HCanvas(self)
 
         # this_canvas.grid(column=0, row=0, sticky="NSEW")
         this_canvas.grid(column=0, row=0, sticky="NW")
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
         self.add(this_canvas, text="Plan 1")
+        
         return this_canvas
 
 
