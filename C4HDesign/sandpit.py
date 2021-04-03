@@ -31,47 +31,44 @@ class Kanvas(Canvas):
 
     def make_rand_poly(self, event):
         self.polygons.append(Random_Polygon(self, event))
-
           
-    def translate(self, event):
-        delta_xy = complex(event.x, -event.y) -self.motion_ref
-        self.focus_item.pivot += delta_xy
-        new_coords = [c + delta_xy for c in self.focus_item.get_coord_complex()]
-        self.coords(self.focus_item.id, self.complex_coords_to_list(new_coords))
-        self.motion_ref = complex(event.x, -event.y)
-
-    def complex_coords_to_list(self, complex_coords):
+    def complex_to_coords(self, complex_nums):
         return [
             item for tup in [
-                (c.real, -c.imag) for c in complex_coords
+                (c.real, -c.imag) for c in complex_nums
                 ] for item in tup
             ]
 
-    def _rotate(self, event):
-        xy = complex(event.x, event.y)
-        pivot = self.focus_item.pivot
-        # delta_phi = phase(pivot-xy)-phase(self.motion_ref-pivot)
-        delta_phi = phase(self.motion_ref-pivot)-phase(pivot-xy)
-        new_coords = [
-            rect(abs(c-pivot), delta_phi+phase(pivot-c))+pivot 
-            for c in self.focus_item.get_coord_complex()
+    def coords_to_complex(self, coords):
+        # coords = self.canvas.coords(self.id)
+        return [
+            complex(x,-y) for x,y in zip(coords[0::2], coords[1::2])
             ]
-        self.coords(self.focus_item.id, self.complex_coords_to_list(new_coords))
-        self.motion_ref = xy
+
+    def translate(self, event):
+        delta_z = complex(event.x, -event.y) -self.motion_ref
+        self.focus_item.pivot += delta_z
+        # new_zs = [c + delta_xy for c in self.focus_item.get_coord_complex()]
+        new_zs = [
+            c + delta_z 
+            for c in self.coords_to_complex(self.coords(self.focus_item.id))
+            ]
+        self.coords(self.focus_item.id, self.complex_to_coords(new_zs))
+        self.motion_ref = complex(event.x, -event.y)
         
     def rotate(self, event):
-        xy = complex(event.x, -event.y)
+        event_z = complex(event.x, -event.y)
         pivot = self.focus_item.pivot
-        delta_phi = c.phase(xy-pivot)-c.phase(self.motion_ref-pivot)
+        delta_phi = c.phase(event_z-pivot)-c.phase(self.motion_ref-pivot)
         new_coords = [
             pivot+(z-pivot)*c.exp(i*delta_phi) 
-            for z in self.focus_item.get_coord_complex()
+            # for z in self.focus_item.get_coord_complex()
+            for z in self.coords_to_complex(self.coords(self.focus_item.id))
             ]
-        self.coords(self.focus_item.id, self.complex_coords_to_list(new_coords))
-        self.motion_ref = xy
+        self.coords(self.focus_item.id, self.complex_to_coords(new_coords))
+        self.motion_ref = event_z
         
         
-
 class Random_Polygon(object):
     def __init__(self, canvas, event, max_points=8) -> None:
         super().__init__()
@@ -90,7 +87,7 @@ class Random_Polygon(object):
         self.id = self.canvas.create_polygon(coords)
 
 
-    def get_coord_complex(self):
+    def coord_to_complex(self):
         coords = self.canvas.coords(self.id)
         return [complex(x,-y) for x,y in zip(coords[0::2], coords[1::2])]
 

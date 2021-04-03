@@ -39,7 +39,7 @@ class C4HCanvas(Canvas):
         return True
 
     def select(self, event):
-        """Sets the foucs_tag ie all those items considered to have focus for moving etc.
+        """Sets the foucus_tag ie all those items considered to have focus for moving etc.
         """
         d = self.scale * 10
         if self.find_overlapping (event.x+d, event.y+d, event.x-d, event.y-d):
