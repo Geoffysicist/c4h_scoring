@@ -6,16 +6,17 @@
 """
 import tkinter as tk
 import cmath as c
+from random import randint
 # from tkinter import Canvas
 from .design_helpers import *
-from math import radians, cos, sin, sqrt
+from math import radians, cos, sin
 i = c.sqrt(-1)
 
 class C4HCanvas(tk.Canvas):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
         self.bind("<Button-1>", self.select)
-        self.bind("<Button-3>", self.build_vertical)
+        self.bind("<Button-3>", self.new_sprite)
         self.bind("<B1-Motion>", self.translate)
         self.bind("<Shift-B1-Motion>", self.rotate)
         self.scale = 40 #x such that scale is 1:x in pixels
@@ -83,41 +84,63 @@ class C4HCanvas(tk.Canvas):
 
         return None
 
-    #TODO start here    
-    def build_vertical(self, event, width=360):
+    def new_sprite(self, event):
+        z = complex(event.x, -event.y)
+        self.build_vertical(z)
+        self.build_shrub(z+2*self.scale)
+
+    def build_vertical(self, pivot: complex, width=360, angle=0) -> None:
+        """Buid a new vertical jump and appends it to the sprite list
+        Args:
+            r_width (int): the width of the rails in cm
+            w_width (int): the width of the wings in cm
+            angle (float): the rotation angle clockwise in degrees
+
+        """
         v = C4HObstacle()
-        half_width = int(width/100 * self.scale /2)
-        quarter_width = int(width/100 * self.scale /4)
-        # pivot_coords = [event.x, event.y]
-        # pivot_id = self.create_polygon(pivot_coords, state=tk.HIDDEN)
-        # pivot = C4HComponent(pivot_id, 'pivot', ref_coords=pivot_coords)
-        # handle_coords = [event.x+quarter_width, event.y-half_width,event.x-quarter_width, event.y-2*half_width]
-        # handle_id = self.create_oval(handle_coords, fill= 'light gray', state=tk.HIDDEN)
-        # handle = C4HComponent(handle_id, 'handle', ref_coords=handle_coords)
-        pole_coords = [event.x-half_width, event.y, event.x+half_width, event.y]
-        pole_id = self.create_line(*pole_coords, width=half_width/10, fill='black')
-        pole = C4HComponent(pole_id, 'pole', ref_coords=pole_coords)
-        arrow_coords = [event.x, event.y+quarter_width,event.x, event.y-half_width]
-        arrow_id = self.create_line(arrow_coords, width=half_width/10, fill= 'red', arrow='last')
-        arrow = C4HComponent(arrow_id, 'arrow', ref_coords=arrow_coords)
-        # v.components.append(pivot)
-        # v.components.append(handle)
-        v.components.append(pole)
+        width = self.scale*width/100
+        phi = radians(angle)
+        rail_l = pivot - (width/2)*c.exp(i*phi)
+        rail_r = pivot + (width/2)*c.exp(i*phi)
+        rail_id = self.create_line(complex_to_coords([rail_l,rail_r]), width=self.scale*0.1, fill='black')
+        rail = C4HComponent(rail_id, 'rail')
+        arrow_tip = pivot - (width/3)*c.exp(i*(phi-c.pi/2))
+        arrow_tail = pivot + (width/6)*c.exp(i*(phi-c.pi/2))
+        arrow_id = self.create_line(complex_to_coords([arrow_tip,arrow_tail]), width=self.scale*0.1, fill= 'red', arrow='first')
+        arrow = C4HComponent(arrow_id, 'arrow')
+        v.components.append(rail)
         v.components.append(arrow)
-        # v.pivot = [event.x, event.y]
-        v.pivot = complex(event.x, -event.y)
         self.sprites.append(v)
 
+    def build_shrub(self, pivot: complex, radius=100, angle=0) -> None:
+        """Buid a new vertical jump and appends it to the sprite list
+        Args:
+            radius (int): the radius of the shrub in cm
+            angle (float): the rotation angle clockwise in degrees
+
+        """
+        shrub = C4HObstacle()
+        radius = int(self.scale*radius/100)
+        phi = radians(angle)
+        zs = []
+        for n in range(16):
+            zs.append(pivot + randint(int(radius/2),radius)*c.exp(i*n*c.tau/16))
+        shrub_id = self.create_polygon(complex_to_coords(zs), fill='dark green')
+        shrub.components.append(C4HComponent(shrub_id, 'shrub'))
+        self.sprites.append(shrub)
+
+
+        
     def rotate(self, event):
         if self.focus_item:
             event_z = complex(event.x, -event.y)
-            pivot = self.focus_item.pivot
+            pivot = get_pivot(self.coords(self.focus_item.components[0].id))
+
             delta_phi = c.phase(event_z-pivot)-c.phase(self.motion_ref-pivot)
             self.motion_ref = event_z
             for comp in self.focus_item.components:
                 new_zs = [
                     pivot+(z-pivot)*c.exp(i*delta_phi) 
-                    # for z in self.focus_item.get_coord_complex()
                     for z in coords_to_complex(self.coords(comp.id))
                     ]
                 self.coords(comp.id, complex_to_coords(new_zs))
@@ -127,7 +150,6 @@ class C4HCanvas(tk.Canvas):
         if self.focus_item:
             delta_z = complex(event.x, -event.y) -self.motion_ref
             self.motion_ref = complex(event.x, -event.y)
-            self.focus_item.pivot += delta_z
             for comp in self.focus_item.components:
                 new_zs = [
                     c + delta_z 

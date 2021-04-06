@@ -24,6 +24,13 @@ def coords_to_complex(coords):
         complex(x,-y) for x,y in zip(coords[0::2], coords[1::2])
         ]
 
+def get_pivot(coords: list) -> complex:
+    """returns a pivot point as a complex number
+
+    the pivot point is the mean of the points.
+    """
+    zs = coords_to_complex(coords)
+    return sum(zs)/len(zs)
 
 class Config:
     """This defines the configuration for all the dataclasses.
@@ -40,7 +47,7 @@ class C4HComponent(object):
     """
     id: int
     type: str
-    ref_coords: List[int] = dataclasses.field(default_factory=lambda: [])
+    # ref_coords: List[int] = dataclasses.field(default_factory=lambda: [])
 
 @dataclass(config=Config)
 class C4HObstacle(object):
@@ -51,7 +58,7 @@ class C4HObstacle(object):
     number: str = ''
     components: List[C4HComponent] = dataclasses.field(default_factory=lambda: [])
     # pivot: List[int] = dataclasses.field(default_factory=lambda: [])
-    pivot: complex = complex(0,0)
+    # pivot: complex = complex(0,0)
 
 
 if __name__ == '__main__':
