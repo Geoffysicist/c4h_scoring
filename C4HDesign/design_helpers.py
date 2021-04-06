@@ -11,6 +11,20 @@ from pydantic import validator
 from pydantic.dataclasses import dataclass
 # from . import score as c4h
 
+
+def complex_to_coords(complex_nums):
+    return [
+        item for tup in [
+            (c.real, -c.imag) for c in complex_nums
+            ] for item in tup
+        ]
+
+def coords_to_complex(coords):
+    return [
+        complex(x,-y) for x,y in zip(coords[0::2], coords[1::2])
+        ]
+
+
 class Config:
     """This defines the configuration for all the dataclasses.
     """
@@ -36,7 +50,8 @@ class C4HObstacle(object):
 
     number: str = ''
     components: List[C4HComponent] = dataclasses.field(default_factory=lambda: [])
-    pivot: List[int] = dataclasses.field(default_factory=lambda: [])
+    # pivot: List[int] = dataclasses.field(default_factory=lambda: [])
+    pivot: complex = complex(0,0)
 
 
 if __name__ == '__main__':
