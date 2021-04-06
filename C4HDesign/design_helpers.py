@@ -47,7 +47,6 @@ class C4HComponent(object):
     """
     id: int
     type: str
-    # ref_coords: List[int] = dataclasses.field(default_factory=lambda: [])
 
 @dataclass(config=Config)
 class C4HObstacle(object):
@@ -57,9 +56,7 @@ class C4HObstacle(object):
 
     number: str = ''
     components: List[C4HComponent] = dataclasses.field(default_factory=lambda: [])
-    # pivot: List[int] = dataclasses.field(default_factory=lambda: [])
-    # pivot: complex = complex(0,0)
-
+    has_focus: bool = False
 
 if __name__ == '__main__':
     print('design_helpers done!')

@@ -6,5 +6,10 @@ z2 = complex(2,2)
 z3 = complex(0,2)
 z4 = complex(2,0)
 z_list = [z1, z2, z3, z4]
-z_mean = sum(z_list)/len(z_list)
-print(z_mean)
+print(z_list)
+z_list.clear()
+print(z_list)
+if z_list:
+    print('yes')
+else:
+    print('no')
