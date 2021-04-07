@@ -49,14 +49,18 @@ class C4HComponent(object):
     type: str
 
 @dataclass(config=Config)
-class C4HObstacle(object):
+class C4HSprite(object):
     """A obstacle consisting of C4HComponents.
     
     may be a jump, island or even start finish lines"""
 
     number: str = ''
+    rail_width: int = 360 #rail width or radius in cm
+    wing_width: int = 70 #wing width in cm
+    spread: int = 0 # spread in cm
+    angle: int = 0 # angle from N in degrees
     components: List[C4HComponent] = dataclasses.field(default_factory=lambda: [])
-    has_focus: bool = False
+
 
 if __name__ == '__main__':
     print('design_helpers done!')

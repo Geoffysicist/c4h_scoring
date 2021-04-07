@@ -19,19 +19,24 @@ COLORS = {
     'shrub': ('dark green', 'light green')
 }
 
-class C4HCanvas(tk.Canvas):
+class C4HPlan(tk.Canvas):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
-        self.bind("<Button-1>", self.select)
-        self.bind("<Shift-Button-1>", self.shift_select)
-        # self.bind("<Control-Button-1>", self.set_motion_ref)
-        self.bind("<Button-3>", self.new_sprite)
-        self.bind("<B1-Motion>", self.translate)
-        self.bind("<Control-B1-Motion>", self.rotate)
         self.scale = 40 #x such that scale is 1:x in pixels
         self.sprites = []
         self.motion_ref = complex(0, 0) #keeps track of motion when draging item
         self.focus_sprites = [] #items which have focus in the canvas
+        self.class_height = 100 #class height in cm
+
+        # all the event bindings
+        self.bind('<Enter>', lambda event: self.focus_set()) #sets focus to canvas
+        self.bind('<Leave>', lambda event: self.master.focus_set()) #remove focus
+        self.bind("<KeyPress>", self.key_press)
+        self.bind("<Button-1>", self.select)
+        self.bind("<Shift-Button-1>", self.shift_select)
+        self.bind("<Button-3>", self.new_sprite)
+        self.bind("<B1-Motion>", self.translate)
+        self.bind("<Control-B1-Motion>", self.rotate)
         
 
     def set_object(self, obj: object, **kwargs) -> bool:
@@ -61,7 +66,6 @@ class C4HCanvas(tk.Canvas):
         """Set focus to a single item.
         """
         self.clear_focus()
-        # self.set_motion_ref(event)
         self.shift_select(event)
 
     def shift_select(self, event):
@@ -74,25 +78,29 @@ class C4HCanvas(tk.Canvas):
             #clicked close enough to item so find closest
             id = self.find_closest(event.x, event.y)[0]
             sprite = self.find_by_id(id)
-            if not sprite.has_focus:
-                self.set_focus(sprite)
+            self.set_focus(sprite)
             
     def clear_focus(self):
-        for sprite in self.focus_sprites:
-            for c in sprite.components:
-                self.itemconfigure(c.id, fill=COLORS.get(c.type)[0])
         self.focus_sprites.clear()
+        self.plan_update()
 
     def set_focus(self, sprite):
-        """Clears existing focus and set focus to sprite.
-        
-        if sprite is None then clears all focus
+        """Set focus to sprite.
         """
-        for c in sprite.components:
-            self.itemconfigure(c.id, fill=COLORS.get(c.type)[1])
-        self.focus_sprites.append(sprite)
+        if not sprite in self.focus_sprites:
+            self.focus_sprites.append(sprite)
+        self.plan_update()
+
+    def plan_update(self):
+        """Updates the colors based on focus status."""
+        for sprite in self.sprites:
+            for c in sprite.components:
+                self.itemconfigure(
+                    c.id, 
+                    fill=COLORS.get(c.type)[sprite in self.focus_sprites]
+                )
                 
-    def find_by_id(self, id: int) -> C4HObstacle:
+    def find_by_id(self, id: int) -> C4HSprite:
         """Finds an element by its canvas id.
         """
         for s in self.sprites:
@@ -104,40 +112,80 @@ class C4HCanvas(tk.Canvas):
 
     def new_sprite(self, event):
         z = complex(event.x, -event.y)
-        self.build_vertical(z)
-        self.build_shrub(z+2*self.scale)
+        sprite = self.build_jump(z)
+        self.sprites.append(sprite)
+        self.plan_update()
 
-    def build_vertical(self, pivot: complex, width=360, angle=0) -> None:
-        """Buid a new vertical jump and appends it to the sprite list
+    def delete_sprite(self, sprite):
+        for component in sprite.components:
+            self.delete(component.id)
+        self.sprites.remove(sprite)
+        
+    def delete_focus_sprites(self):
+        for sprite in self.focus_sprites:
+            self.delete_sprite(sprite)
+        self.focus_sprites.clear()
+        
+    def key_press(self, event):
+        """Responds to a keypress by performing action on all focus sprites.
+        """
+        if self.focus_sprites:
+            cases = {
+                'd': self.replace_w_double,
+                's': self.replace_w_shrub,
+                't': self.replace_w_triple,
+                'v': self.replace_w_vertical,
+                'Delete': self.delete_focus_sprites,
+                }
+            try:
+                cases[event.keysym]()
+            except KeyError:
+                #not an option so
+                pass
+
+
+    def build_jump(self, pivot: complex, toprails: int = 1) -> C4HSprite:
+        """Buid a new jump and appends it to the sprite list
         Args:
             r_width (int): the width of the rails in cm
             w_width (int): the width of the wings in cm
             angle (float): the rotation angle clockwise in degrees
-
         """
-        v = C4HObstacle()
-        width = self.scale*width/100
-        phi = radians(angle)
-        rail_l = pivot - (width/2)*c.exp(i*phi)
-        rail_r = pivot + (width/2)*c.exp(i*phi)
-        rail_id = self.create_line(
-            complex_to_coords([rail_l,rail_r]),
-            width=self.scale*0.1,
-            fill=COLORS.get('rail')[0]
-            )
-        rail = C4HComponent(rail_id, 'rail')
+        j = C4HSprite()
+        line_width = self.scale*0.2
+        width = j.rail_width*self.scale/100 #convert width to pixels
+        phi = radians(j.angle) #convert angle to radians
+        j.spread = rail_spread = 0
+        if toprails > 1:
+            j.spread = (self.class_height+10*(toprails-1))*self.scale/100 #spread in pixels
+            rail_spread = j.spread/(toprails-1)-line_width
+
+        # make rails
+        _pivot = pivot
+        for toprail in range(toprails):
+            rail_l = _pivot - (width/2)*c.exp(i*phi)
+            rail_r = _pivot + (width/2)*c.exp(i*phi)
+            rail_id = self.create_line(
+                complex_to_coords([rail_l,rail_r]),
+                width=line_width,
+                )
+            rail = C4HComponent(rail_id, 'rail')
+            j.components.append(rail)
+            _pivot = _pivot + rail_spread*c.exp(i*(phi-c.pi/2))
+
+        #make arrow
+        # reset the pivot
         arrow_tip = pivot - (width/3)*c.exp(i*(phi-c.pi/2))
-        arrow_tail = pivot + (width/6)*c.exp(i*(phi-c.pi/2))
+        arrow_tail = pivot + (j.spread+width/6)*c.exp(i*(phi-c.pi/2))
         arrow_id = self.create_line(
             complex_to_coords([arrow_tip,arrow_tail]),
-            width=self.scale*0.1,
-            fill= COLORS.get('arrow')[0],
+            width=line_width/2,
             arrow='first'
             )
         arrow = C4HComponent(arrow_id, 'arrow')
-        v.components.append(rail)
-        v.components.append(arrow)
-        self.sprites.append(v)
+        j.components.append(arrow)
+
+        return j
 
     def build_shrub(self, pivot: complex, radius=100, angle=0) -> None:
         """Buid a new vertical jump and appends it to the sprite list
@@ -146,7 +194,7 @@ class C4HCanvas(tk.Canvas):
             angle (float): the rotation angle clockwise in degrees
 
         """
-        shrub = C4HObstacle()
+        shrub = C4HSprite()
         radius = int(self.scale*radius/100)
         phi = radians(angle)
         zs = []
@@ -157,9 +205,39 @@ class C4HCanvas(tk.Canvas):
             fill=COLORS.get('shrub')[0]
             )
         shrub.components.append(C4HComponent(shrub_id, 'shrub'))
-        self.sprites.append(shrub)
+        return shrub
 
+    def replace_w_vertical(self):
+        for i, sprite in enumerate(self.focus_sprites):
+            pivot = get_pivot(self.coords(sprite.components[0].id))
+            self.focus_sprites[i] = self.build_jump(pivot, toprails=1)
+            self.sprites.append(self.focus_sprites[i])
+            self.delete_sprite(sprite)
+        self.plan_update()
 
+    def replace_w_double(self):
+        for i, sprite in enumerate(self.focus_sprites):
+            pivot = get_pivot(self.coords(sprite.components[0].id))
+            self.focus_sprites[i] = self.build_jump(pivot, toprails=2)
+            self.sprites.append(self.focus_sprites[i])
+            self.delete_sprite(sprite)
+        self.plan_update()
+
+    def replace_w_triple(self):
+        for i, sprite in enumerate(self.focus_sprites):
+            pivot = get_pivot(self.coords(sprite.components[0].id))
+            self.focus_sprites[i] = self.build_jump(pivot, toprails=3)
+            self.sprites.append(self.focus_sprites[i])
+            self.delete_sprite(sprite)
+        self.plan_update()
+
+    def replace_w_shrub(self):
+        for i, sprite in enumerate(self.focus_sprites):
+            pivot = get_pivot(self.coords(sprite.components[0].id))
+            self.focus_sprites[i] = self.build_shrub(pivot)
+            self.sprites.append(self.focus_sprites[i])
+            self.delete_sprite(sprite)
+        self.plan_update()
         
     def rotate(self, event):
         event_z = complex(event.x, -event.y)
@@ -183,7 +261,8 @@ class C4HCanvas(tk.Canvas):
         event_z = complex(event.x, -event.y)
         if self.focus_sprites:
             delta_z = event_z -self.motion_ref
-            self.set_motion_ref(event)
+            # self.set_motion_ref(event)
+            self.motion_ref = event_z
             for components in [sprite.components for sprite in self.focus_sprites]:
                 for component in components:
                     new_zs = [
