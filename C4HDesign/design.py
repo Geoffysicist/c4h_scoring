@@ -29,7 +29,7 @@ class C4HPlan(tk.Canvas):
         self.motion_ref = complex(0, 0) #keeps track of motion when draging item
         self.focus_sprites = [] #items which have focus in the canvas
         self.class_height = 100 #class height in cm
-        self.open = False #20 m circles, 3 stride approach, False -> 16 m circles 2 stride approach
+        self.open = False # 3.5 stride approach, False -> 2.5 stride approach
 
         # all the event bindings
         self.bind('<Enter>', lambda event: self.focus_set()) #sets focus to canvas
@@ -156,6 +156,13 @@ class C4HPlan(tk.Canvas):
             angle (float): the rotation angle clockwise in degrees
         """
         j = C4HSprite()
+        distance = 3.5*STRIDE
+        if not self.open:
+            distance = 2.5*STRIDE
+        
+        j.path_controls['approach_control'][0] = j.path_controls['landing_control'][0] = 2 * distance
+        j.path_controls['approach'][0] = j.path_controls['landing'][0] = distance
+
         line_width = self.scale*0.2
         width = j.rail_width*self.scale/100 #convert width to pixels
         phi = radians(j.angle) #convert angle to radians
@@ -278,35 +285,34 @@ class C4HPlan(tk.Canvas):
 
     def add_path(self):
         path_zs = []
+        last_pivot = complex(0,0)
+        last_phi = 0
+
         if self.open:
-            approach = STRIDE*3.5*self.scale/100
-        else:
             approach = STRIDE*2.5*self.scale/100
-        for id, sprite in enumerate(self.focus_sprites, start=1):
+        else:
+            approach = STRIDE*1.5*self.scale/100
+
+        for id, sprite in enumerate(self.focus_sprites):
             arrow_zs = coords_to_complex(self.coords(sprite.get_arrow()))
-            pivot_z = get_pivot(self.coords(sprite.get_rails()[0]))
-            phi = c.phase(arrow_zs[0]-arrow_zs[1])
-            if id != 1:
+            this_pivot = get_pivot(self.coords(sprite.get_rails()[0]))
+            this_phi = c.phase(arrow_zs[0]-arrow_zs[1])
+            if id: #skip for the first point
                 #add points of curve between last point and next point
-                next_z = pivot_z - approach*c.exp(i*phi)
-                last_z = path_zs[-1]
-                sections = 8
-                polar = c.polar(next_z - last_z)
-                centre = (last_z + next_z)/2
-                # path_zs.append(last_z) #repeating points gives stright segments
-                for s in range(1, sections):
-                    this_z = centre - polar[0]/2*c.exp(i*(polar[1] - s*c.pi/sections))
-                    path_zs.append(this_z)
-                path_zs.append(next_z)
-            path_zs.append(pivot_z)
-            if id != len(self.focus_sprites): path_zs.append(pivot_z + approach*c.exp(i*phi))
+                ac, a, l, lc = sprite.path_controls.values()
+                p1 = last_pivot + l[0]*c.exp(i*last_phi)
+                p2 = last_pivot + lc[0]*c.exp(i*(last_phi+lc[1]))
+                p3 = this_pivot - ac[0]*c.exp(i*(this_phi+ac[1]))
+                p4 = this_pivot - a[0]*c.exp(i*this_phi)
+                path_zs += bezier([p1, p2, p3, p4])
+            path_zs.append(this_pivot)
+            last_pivot, last_phi = this_pivot, this_phi
+            
         self.create_line(complex_to_coords(path_zs), smooth=True, dash=(5,5))
         self.create_line(complex_to_coords(path_zs), fill='red', dash=(5,5))
         path_len = 0
         for id, z in enumerate(path_zs):
             if id: path_len += abs(z-path_zs[id-1]) #ignore id 0
-
-        print(f'turn radius: {(polar[0]/2)/self.scale} m')
         print(f'path length: {path_len/self.scale} m')
 
 
