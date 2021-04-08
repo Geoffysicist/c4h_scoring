@@ -61,6 +61,17 @@ class C4HSprite(object):
     angle: int = 0 # angle from N in degrees
     components: List[C4HComponent] = dataclasses.field(default_factory=lambda: [])
 
+    def get_arrow(self) -> C4HComponent:
+        """Returns the id of the arrow components.
+        """
+        for c in self.components:
+            if c.type == 'arrow': return c.id
+        return None
+
+    def get_rails(self) -> list:
+        """Returns the id of the arrow components.
+        """
+        return [c.id for c in self.components if c.type == 'rail']
 
 if __name__ == '__main__':
     print('design_helpers done!')
