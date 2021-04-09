@@ -29,7 +29,7 @@ class C4HPlan(tk.Canvas):
         self.motion_ref = complex(0, 0) #keeps track of motion when draging item
         self.focus_sprites = [] #items which have focus in the canvas
         self.class_height = 100 #class height in cm
-        self.open = False # 3.5 stride approach, False -> 2.5 stride approach
+        self.open = True # 3.5 stride approach, False -> 2.5 stride approach
 
         # all the event bindings
         self.bind('<Enter>', lambda event: self.focus_set()) #sets focus to canvas
@@ -156,11 +156,11 @@ class C4HPlan(tk.Canvas):
             angle (float): the rotation angle clockwise in degrees
         """
         j = C4HSprite()
-        distance = 3.5*STRIDE
+        distance = 3.5*STRIDE*self.scale/100
         if not self.open:
-            distance = 2.5*STRIDE
+            distance = 2.5*STRIDE*self.scale/100
         
-        j.path_controls['approach_control'][0] = j.path_controls['landing_control'][0] = 2 * distance
+        j.path_controls['approach_control'][0] = j.path_controls['landing_control'][0] = 4 * distance
         j.path_controls['approach'][0] = j.path_controls['landing'][0] = distance
 
         line_width = self.scale*0.2
@@ -299,10 +299,11 @@ class C4HPlan(tk.Canvas):
             this_phi = c.phase(arrow_zs[0]-arrow_zs[1])
             if id: #skip for the first point
                 #add points of curve between last point and next point
+                delta_phi = c.pi - (this_phi - last_phi)
                 ac, a, l, lc = sprite.path_controls.values()
                 p1 = last_pivot + l[0]*c.exp(i*last_phi)
-                p2 = last_pivot + lc[0]*c.exp(i*(last_phi+lc[1]))
-                p3 = this_pivot - ac[0]*c.exp(i*(this_phi+ac[1]))
+                p2 = last_pivot + lc[0]*c.exp(i*(last_phi-delta_phi/8))
+                p3 = this_pivot - ac[0]*c.exp(i*(this_phi+delta_phi/8))
                 p4 = this_pivot - a[0]*c.exp(i*this_phi)
                 path_zs += bezier([p1, p2, p3, p4])
             path_zs.append(this_pivot)
