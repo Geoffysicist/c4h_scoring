@@ -10,7 +10,7 @@ import tkinter as tk
 from PIL import ImageTk, Image
 import ctypes #make tkinter dpi aware
 
-from .design import C4HCanvas
+from .design import C4HPlan
 from tkinter import ttk#, filedialog, messagebox, Canvas, Frame
 # from datetime import date
 
@@ -47,12 +47,12 @@ class C4HDesignGUI(ttk.Notebook):
         # the event menu
         self.eventmenu = tk.Menu(self.menubar, tearoff=0)
         self.eventmenu.add_command(label="New", command=self.plan_new)
-        self.menubar.add_cascade(label="Canvas", menu=self.eventmenu)
+        self.menubar.add_cascade(label="Plan", menu=self.eventmenu)
         self.master.config(menu=self.menubar)
 
     def plan_new(self):
-        # this_canvas = C4HCanvas(self,width=2200, height=1600)
-        this_canvas = C4HCanvas(self)
+        # this_canvas = C4HPlan(self,width=2200, height=1600)
+        this_canvas = C4HPlan(self)
 
         this_canvas.grid(column=0, row=0, sticky="NSEW")
         # this_canvas.grid(column=0, row=0, sticky="NW")

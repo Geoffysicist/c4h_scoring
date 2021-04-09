@@ -13,13 +13,22 @@ class Kanvas(Canvas):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
         # self.bind("<Button-1>", self.translate)
-        self.bind("<Button-1>", self.set_focus)
+        self.bind('<Enter>', lambda event: self.focus_set()) #sets focus to canvas
+        self.bind('<Leave>', lambda event: self.master.focus_set()) #remove focus
+        self.bind("<KeyPress>", self.print_key)
+        self.bind("<Button-1>", self.set_focus) #sets focus to sprite
         self.bind("<Button-3>", self.make_rand_poly)
         self.bind("<B1-Motion>", self.translate)
         self.bind("<Shift-B1-Motion>", self.rotate)
         self.focus_item = None
         self.polygons = []
         self.motion_ref = complex(0, 0)
+
+    def print_key(self, event):
+        if event.keysym == 'a':
+            print('a')
+        else:
+            print(event)
 
     def set_focus(self, event):
         closest = self.find_closest(event.x, event.y)[0]
@@ -90,6 +99,8 @@ class Random_Polygon(object):
     def coord_to_complex(self):
         coords = self.canvas.coords(self.id)
         return [complex(x,-y) for x,y in zip(coords[0::2], coords[1::2])]
+
+
 
 if __name__ == "__main__":
     root = tk.Tk()

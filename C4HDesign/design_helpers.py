@@ -24,6 +24,27 @@ def coords_to_complex(coords):
         complex(x,-y) for x,y in zip(coords[0::2], coords[1::2])
         ]
 
+def get_pivot(coords: list) -> complex:
+    """returns a pivot point as a complex number
+
+    the pivot point is the mean of the points.
+    """
+    zs = coords_to_complex(coords)
+    return sum(zs)/len(zs)
+
+def bezier(control_points: list, num_points: int = 8) -> list:
+    """Created a cubic bezier curve from four complex points.
+
+    returns a list of complex point.
+    """
+    curve_zs = []
+    p1, p2, p3, p4 = control_points
+    for p in range(num_points):
+        t = p/(num_points-1)
+        curve_zs.append(
+            p1*(1-t)**3 + 3*p2*(1-t)**2*(t)+3*p3*(1-t)*t**2+p4*t**3
+            )
+    return curve_zs
 
 class Config:
     """This defines the configuration for all the dataclasses.
@@ -40,19 +61,37 @@ class C4HComponent(object):
     """
     id: int
     type: str
-    ref_coords: List[int] = dataclasses.field(default_factory=lambda: [])
 
 @dataclass(config=Config)
-class C4HObstacle(object):
+class C4HSprite(object):
     """A obstacle consisting of C4HComponents.
     
     may be a jump, island or even start finish lines"""
 
     number: str = ''
+    rail_width: int = 360 #rail width or radius in cm
+    wing_width: int = 70 #wing width in cm
+    spread: int = 0 # spread in cm
+    angle: int = 0 # angle from N in degrees
     components: List[C4HComponent] = dataclasses.field(default_factory=lambda: [])
-    # pivot: List[int] = dataclasses.field(default_factory=lambda: [])
-    pivot: complex = complex(0,0)
+    path_controls = { #modify bezier paths
+        'approach_control': [0,0],
+        'approach': [0],
+        'landing': [0],
+        'landing_control': [0,0]
+    }
 
+    def get_arrow(self) -> C4HComponent:
+        """Returns the id of the arrow components.
+        """
+        for c in self.components:
+            if c.type == 'arrow': return c.id
+        return None
+
+    def get_rails(self) -> list:
+        """Returns the id of the arrow components.
+        """
+        return [c.id for c in self.components if c.type == 'rail']
 
 if __name__ == '__main__':
     print('design_helpers done!')

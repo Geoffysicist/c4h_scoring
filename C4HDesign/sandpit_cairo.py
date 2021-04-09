@@ -1,13 +1,9 @@
-import cmath as c
+path_controls = { #modify bezier paths
+        'approach_control': [0,0],
+        'approach': [0],
+        'landing': [0],
+        'landing_control': [0,0]
+    }
 
-z = c.rect(1,c.pi/2)
-i = c.sqrt(-1)
-print(z, i)
-
-print(c.polar(z))
-print(c.exp(i*c.pi/2))
-# print(c.exp(i*c.pi/2)^2)
-print(c.exp(i*c.pi/2)*c.exp(i*c.pi/2))
-print(c.sqrt(-1))
-
-
+c1,c2,c3,c4 = path_controls.values()
+print(c4)
