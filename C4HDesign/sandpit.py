@@ -1,9 +1,6 @@
-def binomial_coeffs(n: int) -> list:
-    coeffs = [1]
-    for k in range(n):
-        coeffs.append(int((coeffs[k]*(n-k))/(k+1)))
-    return coeffs
+import design_helpers as dh
 
-if __name__ == '__main__':
-    for i in range(1,10):
-        print(binomial_coeffs(i))
+comp_list = [complex(0,0), complex(0,1), complex(1,1), complex(1,0)]
+
+print(dh.bezier(comp_list, 8))
+print(dh._bezier(comp_list, 8))

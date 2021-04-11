@@ -32,10 +32,10 @@ def get_pivot(coords: list) -> complex:
     zs = cartesian_to_complex(coords)
     return sum(zs)/len(zs)
 
-def binomial_coeffs(n: int) -> list:
+def binomial_coeffs(pow: int) -> list:
     coeffs = [1]
-    for k in range(n):
-        coeffs.append(int((coeffs[k]*(n-k))/(k+1)))
+    for k in range(pow):
+        coeffs.append(int((coeffs[k]*(pow-k))/(k+1)))
     return coeffs
 
 def bezier(control_points: list, num_points: int = 8) -> list:
@@ -44,6 +44,24 @@ def bezier(control_points: list, num_points: int = 8) -> list:
     returns a list of complex point.
     """
     curve_zs = []
+    pow = len(control_points) - 1 #power of the binomial
+    coeffs = binomial_coeffs(pow)
+    
+    for p in range(num_points):
+        t = p/(num_points-1)
+        z = complex(0,0)
+        for ind, cp in enumerate(control_points):
+            z += coeffs[ind] * cp * (1-t)**(pow-ind) * t**ind
+        curve_zs.append(z)
+    return curve_zs
+
+def _bezier(control_points: list, num_points: int = 8) -> list:
+    """Created a cubic bezier curve from four complex points.
+
+    returns a list of complex point.
+    """
+    curve_zs = []
+    coeffs = binomial_coeffs(len(control_points))
     p1, p2, p3, p4 = control_points
     for p in range(num_points):
         t = p/(num_points-1)
