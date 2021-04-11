@@ -12,14 +12,14 @@ from pydantic.dataclasses import dataclass
 # from . import score as c4h
 
 
-def complex_to_coords(complex_nums):
+def complex_to_cartesian(complex_nums):
     return [
         item for tup in [
             (c.real, -c.imag) for c in complex_nums
             ] for item in tup
         ]
 
-def coords_to_complex(coords):
+def cartesian_to_complex(coords):
     return [
         complex(x,-y) for x,y in zip(coords[0::2], coords[1::2])
         ]
@@ -29,8 +29,14 @@ def get_pivot(coords: list) -> complex:
 
     the pivot point is the mean of the points.
     """
-    zs = coords_to_complex(coords)
+    zs = cartesian_to_complex(coords)
     return sum(zs)/len(zs)
+
+def binomial_coeffs(n: int) -> list:
+    coeffs = [1]
+    for k in range(n):
+        coeffs.append(int((coeffs[k]*(n-k))/(k+1)))
+    return coeffs
 
 def bezier(control_points: list, num_points: int = 8) -> list:
     """Created a cubic bezier curve from four complex points.
@@ -72,6 +78,7 @@ class C4HSprite(object):
     rail_width: int = 360 #rail width or radius in cm
     wing_width: int = 70 #wing width in cm
     spread: int = 0 # spread in cm
+    #TODO calculate the angle as we go
     angle: int = 0 # angle from N in degrees
     components: List[C4HComponent] = dataclasses.field(default_factory=lambda: [])
     path_controls = { #modify bezier paths

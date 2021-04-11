@@ -7,9 +7,12 @@
 import tkinter as tk
 import cmath as c
 from random import randint
-# from tkinter import Canvas
-from .design_helpers import *
-from math import radians, cos, sin
+from math import radians
+
+if __name__ == '__main__':
+    from design_helpers import *
+else:
+    from .design_helpers import *
 i = c.sqrt(-1)
 
 COLORS = {
@@ -18,6 +21,8 @@ COLORS = {
     'arrow': ('red', 'pink'),
     'shrub': ('dark green', 'light green')
 }
+
+
 
 STRIDE = 370 #stride length in cm
 
@@ -38,9 +43,18 @@ class C4HPlan(tk.Canvas):
         self.bind("<Button-1>", self.select)
         self.bind("<Shift-Button-1>", self.shift_select)
         self.bind("<Button-3>", self.new_sprite)
-        self.bind("<B1-Motion>", self.translate)
-        self.bind("<Control-B1-Motion>", self.rotate)
+        self.bind("<B1-Motion>", self.mouse_translate)
+        self.bind("<Control-B1-Motion>", self.mouse_rotate)
         
+        self.KEYS = {
+            'd': self.replace_w_double,
+            'p': self.add_path,
+            's': self.replace_w_shrub,
+            't': self.replace_w_triple,
+            'v': self.replace_w_vertical,
+            'o': self.output,
+            'Delete': self.delete_focus_sprites,
+            }
 
     def set_object(self, obj: object, **kwargs) -> bool:
         """Updates the value of the attributes in obj given by kwargs.
@@ -133,19 +147,11 @@ class C4HPlan(tk.Canvas):
         """Responds to a keypress by performing action on all focus sprites.
         """
         if self.focus_sprites:
-            cases = {
-                'd': self.replace_w_double,
-                'p': self.add_path,
-                's': self.replace_w_shrub,
-                't': self.replace_w_triple,
-                'v': self.replace_w_vertical,
-                'Delete': self.delete_focus_sprites,
-                }
             try:
-                cases[event.keysym]()
-            except KeyError:
+                self.KEYS[event.keysym]()
+            except Exception as e:
                 #not an option so
-                pass
+                print('Exception: ', e)
 
 
     def build_jump(self, pivot: complex, toprails: int = 1) -> C4HSprite:
@@ -165,7 +171,7 @@ class C4HPlan(tk.Canvas):
 
         line_width = self.scale*0.2
         width = j.rail_width*self.scale/100 #convert width to pixels
-        phi = radians(j.angle) #convert angle to radians
+        phi = radians(j.angle) #convert angle to radians TODO calculate this!
         j.spread = rail_spread = 0
         if toprails > 1:
             j.spread = (self.class_height+10*(toprails-1))*self.scale/100 #spread in pixels
@@ -177,7 +183,7 @@ class C4HPlan(tk.Canvas):
             rail_l = _pivot - (width/2)*c.exp(i*phi)
             rail_r = _pivot + (width/2)*c.exp(i*phi)
             rail_id = self.create_line(
-                complex_to_coords([rail_l,rail_r]),
+                complex_to_cartesian([rail_l,rail_r]),
                 width=line_width,
                 )
             rail = C4HComponent(rail_id, 'rail')
@@ -189,7 +195,7 @@ class C4HPlan(tk.Canvas):
         arrow_tip = pivot - (width/3)*c.exp(i*(phi-c.pi/2))
         arrow_tail = pivot + (j.spread+width/6)*c.exp(i*(phi-c.pi/2))
         arrow_id = self.create_line(
-            complex_to_coords([arrow_tip,arrow_tail]),
+            complex_to_cartesian([arrow_tip,arrow_tail]),
             width=line_width/2,
             arrow='first'
             )
@@ -212,7 +218,7 @@ class C4HPlan(tk.Canvas):
         for n in range(16):
             zs.append(pivot + randint(int(radius/2),radius)*c.exp(i*n*c.tau/16))
         shrub_id = self.create_polygon(
-            complex_to_coords(zs),
+            complex_to_cartesian(zs),
             fill=COLORS.get('shrub')[0]
             )
         shrub.components.append(C4HComponent(shrub_id, 'shrub'))
@@ -249,8 +255,8 @@ class C4HPlan(tk.Canvas):
             self.sprites.append(self.focus_sprites[i])
             self.delete_sprite(sprite)
         self.plan_update()
-        
-    def rotate(self, event):
+
+    def mouse_rotate(self, event):
         event_z = complex(event.x, -event.y)
         if self.focus_sprites:
             pivot = get_pivot(
@@ -258,29 +264,41 @@ class C4HPlan(tk.Canvas):
                 )
 
             delta_phi = c.phase(event_z-pivot)-c.phase(self.motion_ref-pivot)
+            self.rotate(delta_phi)
             self.motion_ref = event_z
+
+
+    def rotate(self, phi):
+        if self.focus_sprites:
+            pivot = get_pivot(
+                self.coords(self.focus_sprites[0].components[0].id)
+                )
+
             for components in [sprite.components for sprite in self.focus_sprites]:
                 for component in components:
                     new_zs = [
-                        pivot+(z-pivot)*c.exp(i*delta_phi) 
-                        for z in coords_to_complex(self.coords(component.id))
+                        pivot+(z-pivot)*c.exp(i*phi) 
+                        for z in cartesian_to_complex(self.coords(component.id))
                         ]
-                    self.coords(component.id, complex_to_coords(new_zs))
+                    self.coords(component.id, complex_to_cartesian(new_zs))
         
-
-    def translate(self, event):
+    def mouse_translate(self, event):
         event_z = complex(event.x, -event.y)
         if self.focus_sprites:
             delta_z = event_z -self.motion_ref
-            # self.set_motion_ref(event)
             self.motion_ref = event_z
+            self.translate(delta_z)
+
+    def translate(self, delta_z):
+        if self.focus_sprites:
+            # self.motion_ref = event_z
             for components in [sprite.components for sprite in self.focus_sprites]:
                 for component in components:
                     new_zs = [
                         z + delta_z 
-                        for z in coords_to_complex(self.coords(component.id))
+                        for z in cartesian_to_complex(self.coords(component.id))
                         ]
-                    self.coords(component.id, complex_to_coords(new_zs))
+                    self.coords(component.id, complex_to_cartesian(new_zs))
         
 
     def add_path(self):
@@ -294,7 +312,7 @@ class C4HPlan(tk.Canvas):
             approach = STRIDE*1.5*self.scale/100
 
         for id, sprite in enumerate(self.focus_sprites):
-            arrow_zs = coords_to_complex(self.coords(sprite.get_arrow()))
+            arrow_zs = cartesian_to_complex(self.coords(sprite.get_arrow()))
             this_pivot = get_pivot(self.coords(sprite.get_rails()[0]))
             this_phi = c.phase(arrow_zs[0]-arrow_zs[1])
             if id: #skip for the first point
@@ -309,12 +327,22 @@ class C4HPlan(tk.Canvas):
             path_zs.append(this_pivot)
             last_pivot, last_phi = this_pivot, this_phi
             
-        self.create_line(complex_to_coords(path_zs), smooth=True, dash=(5,5))
-        self.create_line(complex_to_coords(path_zs), fill='red', dash=(5,5))
+        self.create_line(complex_to_cartesian(path_zs), smooth=True, dash=(5,5))
+        self.create_line(complex_to_cartesian(path_zs), fill='red', dash=(5,5))
         path_len = 0
         for id, z in enumerate(path_zs):
             if id: path_len += abs(z-path_zs[id-1]) #ignore id 0
         print(f'path length: {path_len/self.scale} m')
+
+    ### Input and Output ###
+    def output(self):
+        print("printing ps")
+        # self.postscript(file='print_test.eps', colormode='color')
+        ps = self.postscript()
+        file = open('test.ps','w')
+        file.write(ps)
+        file.close()
+        print('printed postscript')
 
 
 if __name__ == '__main__':
