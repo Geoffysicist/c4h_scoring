@@ -12,14 +12,14 @@ from pydantic.dataclasses import dataclass
 # from . import score as c4h
 
 
-def complex_to_coords(complex_nums):
+def complex_to_cartesian(complex_nums):
     return [
         item for tup in [
             (c.real, -c.imag) for c in complex_nums
             ] for item in tup
         ]
 
-def coords_to_complex(coords):
+def cartesian_to_complex(coords):
     return [
         complex(x,-y) for x,y in zip(coords[0::2], coords[1::2])
         ]
@@ -29,15 +29,64 @@ def get_pivot(coords: list) -> complex:
 
     the pivot point is the mean of the points.
     """
-    zs = coords_to_complex(coords)
+    zs = cartesian_to_complex(coords)
     return sum(zs)/len(zs)
 
+def binomial_coeffs(order: int) -> list:
+    coeffs = [1]
+    for k in range(order):
+        coeffs.append(int((coeffs[k]*(order-k))/(k+1)))
+    return coeffs
+
 def bezier(control_points: list, num_points: int = 8) -> list:
+    """Created a bezier curve from complex points.
+
+    Bezier curve is a series of complex 
+
+    args:
+        control_points: list[complex]
+        num_points: int the number of points defining the curve
+
+    returns:
+        list[complex].
+    """
+    curve_zs = []
+    order = len(control_points) - 1 #power of the binomial
+    coeffs = binomial_coeffs(order)
+    
+    for p in range(num_points):
+        t = p/(num_points-1)
+        z = complex(0,0)
+        for ind, cp in enumerate(control_points):
+            z += coeffs[ind] * cp * (1-t)**(order-ind) * t**ind
+        curve_zs.append(z)
+    return curve_zs
+
+def get_intersect_from_zs(pair1, pair2):
+    """ Find the intersect of 2 lines given 2 pairs of complex points.
+
+    Checks to see if an intersect exists between lines drawn from point1
+    through point2 in each line. Note that this is deliberately directional,
+    Will not fin an intercept drawn from point2 through point 1.
+
+    Returns the complex number correspondint to the intercept or None
+    """
+    p1, p2 = pair1
+    p3, p4 = pair2
+    t = abs((p3 - p1) / (p2 + p3 - p1 - p4))
+    if (p1 + (p2 - p1)*t) == p3 + (p4 - p3)*t:
+        return p1 + (p2 - p1)*t
+    return None
+
+
+
+def _bezier(control_points: list, num_points: int = 8) -> list:
     """Created a cubic bezier curve from four complex points.
 
     returns a list of complex point.
     """
     curve_zs = []
+    coeffs = binomial_coeffs(len(control_points))
     p1, p2, p3, p4 = control_points
     for p in range(num_points):
         t = p/(num_points-1)
@@ -72,6 +121,7 @@ class C4HSprite(object):
     rail_width: int = 360 #rail width or radius in cm
     wing_width: int = 70 #wing width in cm
     spread: int = 0 # spread in cm
+    #TODO calculate the angle as we go
     angle: int = 0 # angle from N in degrees
     components: List[C4HComponent] = dataclasses.field(default_factory=lambda: [])
     path_controls = { #modify bezier paths

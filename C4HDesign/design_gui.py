@@ -38,8 +38,6 @@ class C4HDesignGUI(ttk.Notebook):
         self.master.rowconfigure(0, weight=1)
         self.master.update()
         self.grid(row=0, column=0, sticky="NSEW")
-        # self.master.grid_rowconfigure(0, weight=1)
-        # self.master.grid_columnconfigure(0, weight=1)
 
         # set the main menu
         self.menubar = tk.Menu(self.master)
