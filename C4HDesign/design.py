@@ -149,7 +149,7 @@ class C4HPlan(tk.Canvas):
         if self.focus_sprites:
             try:
                 self.KEYS[event.keysym]()
-            except Exception as e:
+            except KeyError as e:
                 #not an option so
                 print('Exception: ', e)
 

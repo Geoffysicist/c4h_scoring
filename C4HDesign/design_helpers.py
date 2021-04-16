@@ -32,28 +32,53 @@ def get_pivot(coords: list) -> complex:
     zs = cartesian_to_complex(coords)
     return sum(zs)/len(zs)
 
-def binomial_coeffs(pow: int) -> list:
+def binomial_coeffs(order: int) -> list:
     coeffs = [1]
-    for k in range(pow):
-        coeffs.append(int((coeffs[k]*(pow-k))/(k+1)))
+    for k in range(order):
+        coeffs.append(int((coeffs[k]*(order-k))/(k+1)))
     return coeffs
 
 def bezier(control_points: list, num_points: int = 8) -> list:
-    """Created a cubic bezier curve from four complex points.
+    """Created a bezier curve from complex points.
 
-    returns a list of complex point.
+    Bezier curve is a series of complex 
+
+    args:
+        control_points: list[complex]
+        num_points: int the number of points defining the curve
+
+    returns:
+        list[complex].
     """
     curve_zs = []
-    pow = len(control_points) - 1 #power of the binomial
-    coeffs = binomial_coeffs(pow)
+    order = len(control_points) - 1 #power of the binomial
+    coeffs = binomial_coeffs(order)
     
     for p in range(num_points):
         t = p/(num_points-1)
         z = complex(0,0)
         for ind, cp in enumerate(control_points):
-            z += coeffs[ind] * cp * (1-t)**(pow-ind) * t**ind
+            z += coeffs[ind] * cp * (1-t)**(order-ind) * t**ind
         curve_zs.append(z)
     return curve_zs
+
+def get_intersect_from_zs(pair1, pair2):
+    """ Find the intersect of 2 lines given 2 pairs of complex points.
+
+    Checks to see if an intersect exists between lines drawn from point1
+    through point2 in each line. Note that this is deliberately directional,
+    Will not fin an intercept drawn from point2 through point 1.
+
+    Returns the complex number correspondint to the intercept or None
+    """
+    p1, p2 = pair1
+    p3, p4 = pair2
+    t = abs((p3 - p1) / (p2 + p3 - p1 - p4))
+    if (p1 + (p2 - p1)*t) == p3 + (p4 - p3)*t:
+        return p1 + (p2 - p1)*t
+    return None
+
+
 
 def _bezier(control_points: list, num_points: int = 8) -> list:
     """Created a cubic bezier curve from four complex points.
