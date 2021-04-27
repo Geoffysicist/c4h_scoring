@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": ".venv\\Scripts\\python.exe",
+    "python.pythonPath": ".pypy_venv\\Scripts\\pypy3.exe",
     "python.testing.pytestArgs": [
         "tests"
     ],
