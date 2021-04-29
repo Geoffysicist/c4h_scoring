@@ -3,4 +3,36 @@ site_name: Courses4Horses
 theme:
   name: material
   palette:
+    scheme: c4h
     primary: green
+  
+  favicon: assets/images/favicon.png
+
+  logo: assets/courses4horses_logo_bare.png
+
+  font:
+    text: Raleway
+
+  features:
+    - toc.integrate
+
+
+# repo_url: https://github.com/Geoffysicist/Courses4Horses
+
+markdown_extensions:
+  - attr_list
+
+
+extra:
+  social:
+    - icon: fontawesome/brands/facebook
+      link: https://www.facebook.com/courses4horses
+      text: Courses4Horse on Facebook
+
+    - icon: fontawesome/solid/envelope
+      link: https://mailhide.io/e/3Y8Bp043
+      text: Contact Courses4Horses
+
+extra_css:
+  - stylesheets/c4h.css
+

@@ -1,9 +1,10 @@
-name: docs
+name: web_deploy
 on:
   push:
     branches:
-      - master
       - website
+      - master
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

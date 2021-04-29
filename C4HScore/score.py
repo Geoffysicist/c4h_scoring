@@ -1,7 +1,6 @@
 """score.py - backend for C4HScore, a scoreboard for judging showjumping.
 
     Defines the main class C4HEvent which stores all the helper dataclasses.
-
 """
 
 from typing import List, Any

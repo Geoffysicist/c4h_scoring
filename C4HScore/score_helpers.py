@@ -2,7 +2,8 @@
 
 These are called by the main class C4HEvent.
 They should be considered private and only accessed through CH4Event methods
-All unit tests are performed through C4hEvent
+
+All unit tests are performed through C4HEvent
 """
 
 import uuid
