@@ -59,7 +59,3 @@ class C4HDesignGUI(ttk.Notebook):
         self.add(this_canvas, text="Plan 1")
         
         return this_canvas
-
-
-
-

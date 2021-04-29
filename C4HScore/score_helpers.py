@@ -2,6 +2,7 @@
 
 These are called by the main class C4HEvent.
 They should be considered private and only accessed through CH4Event methods
+
 All unit tests are performed through C4HEvent
 """
 
@@ -150,7 +151,7 @@ class C4HJumpClass:
         id (str): an integer that may have a character appended eg. 8c 
         name (str):
         arena (_C4HArena):
-        _ID (uuid): unique identifier
+        ID (uuid): unique identifier
         description (str):
         article (EAArticle):
         height (int): the height in cm
@@ -161,7 +162,7 @@ class C4HJumpClass:
     '''
     def __init__(self, id, arena):
 
-        self._ID = uuid.UUID()
+        self.ID = uuid.UUID()
         self.id = id
         self.arena = arena
         self.name = f'Class {self.id}'

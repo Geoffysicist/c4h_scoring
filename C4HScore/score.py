@@ -1,4 +1,4 @@
-"""c4h_score.py - backend for C4HScore, a scoreboard for judging showjumping.
+"""score.py - backend for C4HScore, a scoreboard for judging showjumping.
 
     Defines the main class C4HEvent which stores all the helper dataclasses.
 """
@@ -69,7 +69,7 @@ class C4HEvent(BaseModel):
         for key, val in kwargs.items():
             setattr(obj, key, val)
 
-        self.update()
+        self.update() #this probably isnt necessary
         return True
 
     def exists_object(self, obj: object, **kwargs) -> List[Any]:
@@ -164,7 +164,7 @@ class C4HEvent(BaseModel):
         return r
     
     def new_horse(self, **kwargs) -> C4HHorse:
-        '''creates a new horse and appends it to the _horses list.
+        '''creates a new horse and appends it to the horses list.
 
         The horse is given automatically a unique ID. All other
         attributes can bet set at initiation using kwargs.
@@ -204,7 +204,7 @@ class C4HEvent(BaseModel):
         return c
     
     def new_official(self, **kwargs) -> C4HOfficial:
-        '''creates a new official and appends it to the rider list.
+        '''creates a new official and appends it to the list.
         All attributes can bet set at initiation using kwargs.
 
         Args:
@@ -222,8 +222,31 @@ class C4HEvent(BaseModel):
 
         return o
 
-    def new_jumpclass(self):
-        pass
+    def new_jumpclass(self, **kwargs) -> C4HJumpClass:
+        '''creates a new jumpclass and appends it to the jumpclass list.
+        All attributes can bet set at initiation using kwargs.
+
+        Args:
+            id (str): an integer that may have a character appended eg. 8c 
+            name (str):
+            arena (_C4HArena):
+            ID (uuid): unique identifier
+            description (str):
+            article (EAArticle):
+            height (int): the height in cm
+            judge (str): judges name
+            cd (str): course designer name
+            places (int): the number of places awarded prizes
+            rounds (list[_C4HRound]): rounds entered in this arenas
+
+        Returns:
+            C4HOfficial
+        '''
+        j = C4HJumpClass()
+        self.set_object(j, **kwargs)
+        self.jumpclasses.append(j)
+        self.update()
+
 
     def get_jumpclasses(self):
         pass
