@@ -1,0 +1,280 @@
+# -*- coding: iso-8859-15 -*-
+import sys, time
+try:
+   import msvcrt
+except ImportError:
+   print u"Sorry, this is a Windows program and you seem to try to run it from a Non-Windows platform. "
+   sys.exit(-1)
+import pythoncom, win32com.client
+
+
+class _EventEmitter(list):
+      
+   def __iadd__(self, other):
+      assert callable(other)
+      self.append(other)
+      return self
+   
+   def __call__(self, *args, **kwargs):
+      for each in self:
+         each(*args, **kwargs)
+
+
+class _TimyEvents:
+   
+   def OnConnectionClosed(self):
+      Timy_S()._OnConnectionClosed_()
+      return
+   
+   def OnConnectionOpen(self):
+      Timy_S()._OnConnectionOpen_()
+      return
+   
+   def OnError(self, code, text):
+      Timy_S()._OnError_(code, text)
+      return
+   
+   def OnErrorInternal(self, code, text):
+      Timy_S()._OnErrorInternal_(code, text)
+      return
+   
+   def OnMessage(self, text):
+      Timy_S()._OnMessage_(text)
+      return
+   
+   def OnPnPConnect(self):
+      Timy_S()._OnPnPConnect_()
+      return
+   
+   def OnPnPRemove(self):
+      Timy_S()._OnPnPRemove_()
+      return
+   
+   def OnProgress(self, numBytes, maxNumBytes):
+      Timy_S()._OnProgress_(numBytes, maxNumBytes)
+      return
+   
+   def OnSendComplete(self):
+      Timy_S()._OnSendComplete_()
+      return
+   
+   def OnUpdateCompleted(self):
+      Timy_S()._OnUpdateCompleted_()
+      return
+   
+   def OnUSBInputRaw(self):
+      data = Timy_S().RawChunk
+      data = data.replace(chr(13), "\\r").replace(chr(10), "\\n").replace(chr(0), "\\0")
+      Timy_S()._OnDataRaw_(data)
+      return
+
+   def OnUSBInput(self, data):
+      Timy_S()._OnData_(data)
+      return
+
+
+class Command2Timy:
+   
+   def __init__(self, command):
+      self._command = command
+      return
+   
+   def __str__(self):
+      s = self._command.rstrip()
+      if len(s) and s[-1] != u"\r":
+         s += u"\r"
+      return s
+   
+   
+class Timy_S:
+   
+   _State = {}
+   
+
+   _OnConnectionClosed_ = _EventEmitter()
+   _OnConnectionOpen_ = _EventEmitter()
+   _OnDataRaw_ = _EventEmitter()
+   _OnData_ = _EventEmitter()
+   _OnError_ = _EventEmitter()
+   _OnErrorInternal_ = _EventEmitter()
+   _OnMessage_ = _EventEmitter()
+   _OnPnPConnect_ = _EventEmitter()
+   _OnPnPRemove_ = _EventEmitter()
+   _OnProgress_ = _EventEmitter()
+   _OnSendComplete_ = _EventEmitter()
+   _OnUpdateCompleted_ = _EventEmitter()
+   
+
+   def __init__(self):
+      self.__dict__ = Timy_S._State
+      if self.__dict__:
+         return
+      try:
+         self._timy = win32com.client.DispatchWithEvents('ALGEUSB.TimyUSB', _TimyEvents)
+      except Exception, e:
+         print u"\nERROR:\t'%s'" % unicode( e)
+         print u"\n\tDid you install the driver needed to connect to a Timy hardware?"
+         t = time.time()
+         while time.time() - t <= 5:
+            time.sleep( 0.5)
+         sys.exit( -1)
+      self._timy.Init()
+      return
+      
+   def __getattr__(self, name):
+      try:
+         return self.__dict__[name]
+      except KeyError:
+         return getattr(self._timy, name)
+      
+   def version(self):
+      return self.Version()
+   
+
+class _Menu:
+   
+   _OnMenuConnect_ = _EventEmitter()
+   _OnMenuDisconnect_ = _EventEmitter()
+   _OnMenuExit_ = _EventEmitter()
+   _OnMenuHelp_ = _EventEmitter()
+   
+   def __init__( self):
+      self._menuLines = ((u"c...Connect to Timy", self._onConnect_),
+                         (u"d...Disconnect Timy", self._onDisconnect_),
+                         (u"h...Help", self._onHelp_),
+                         (u"x...Exit this program", self._onExit_),
+                        )
+      self._banner = u"ALGEUSB Python Console Demo Program (Ver. 1.0.7120)"
+      self._input = u""
+      self._isFirstTime = 1
+      return
+
+   def awaitInput( self):
+      print u"> ",
+      while 1: 
+         if msvcrt.kbhit():
+            self._input = msvcrt.getche()
+            break
+         else:
+            time.sleep( 0.050)
+            pythoncom.PumpWaitingMessages()
+      print
+
+   def actOnInput( self):      
+      for each in self._menuLines:
+         if self._input == each[0][0]:
+            each[1]()
+      return
+   
+   def _onConnect_( self):
+      self._OnMenuConnect_()
+      return 
+   
+   def _onDisconnect_( self):
+      self._OnMenuDisconnect_()
+      return 
+   
+   def _onHelp_( self):
+      print u"\n" + self._banner + u"\n"
+      self._OnMenuHelp_()
+      return 
+   
+   def _onExit_( self):
+      self._OnMenuExit_()
+      
+   def show( self):
+      if self._isFirstTime:
+         self._isFirstTime = 0
+      else:
+         print u"\n\n\n\n"
+      print self._banner
+      print
+      lenMax = 0
+      for each in self._menuLines:
+         lenMax = max( lenMax, len(each[0]))
+         print each[0]
+      print u"-" * lenMax
+
+
+
+class ALGEUSBDemoPyConsole:
+   
+   def __init__( self):
+      Timy_S._OnConnectionClosed_ += self._onTimyDisconnected_
+      Timy_S._OnConnectionOpen_ += self._onTimyConnected_
+      Timy_S._OnDataRaw_ += self._onTimyDataRaw_
+      Timy_S._OnData_ += self._onTimyData_
+      
+      self._menu = _Menu()
+      self._menu._OnMenuConnect_ += self._onMenuConnect_
+      self._menu._OnMenuDisconnect_ += self._onMenuDisconnect_
+      self._menu._OnMenuExit_ += self._onMenuExit_
+      self._menu._OnMenuHelp_ += self._onMenuHelp_
+
+      return
+   
+   def _onMenuConnect_( self):
+      print u"Open connection. You should receive a ConnectionOpen Event now. "
+      r = Timy_S().OpenConnection( 0)
+      return
+   
+   def _onMenuDisconnect_( self):
+      print u"Close connection. "
+      r = Timy_S().CloseConnection()
+      return
+   
+   def _onMenuExit_( self):
+      Timy_S().CloseConnection()
+      raise KeyboardInterrupt()
+   
+   def _onMenuHelp_( self):
+      print \
+"""
+Start by pressing 'c'. This will connect you to Timy. Timy then will continue to send 
+time stamps as so-called raw/data .
+
+To stop Timy, press 'd'.
+
+To exit this program any time, press 'x'. In case you are still connected to Timy, this
+program will close the connection for you.
+"""
+      return
+   
+
+   def _onTimyConnected_( self):
+      print u"Ackn. from Timy: Connected. You should recieve Timy Events now. "
+      return
+   
+   def _onTimyDisconnected_( self):
+      print u"Ackn. from Timy: Disconnected. "
+      return
+   
+   def _onTimyDataRaw_( self, data):
+      print u"\t" * 5,
+      print u"Raw data from Timy:", data
+      return
+   
+   def _onTimyData_( self, data):
+      print u"\t" * 5,
+      print u"Data from Timy    :", data
+      return
+   
+
+   def run( self):
+      while 1:
+         self._menu.show()
+         self._menu.awaitInput()
+         try: 
+            self._menu.actOnInput()
+         except KeyboardInterrupt:
+            return
+      return 
+   
+   
+def main():
+   ALGEUSBDemoPyConsole().run()
+   
+if __name__ == '__main__':
+   main()
+   raw_input( u"Press any key to exit...")
+   
