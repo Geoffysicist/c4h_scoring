@@ -53,3 +53,7 @@ if __name__ == "__main__":
     if new_usb_ids:
         new_usb_id = new_usb_ids[0]
         timy = connect_usb(new_usb_id) #connect to first new usb in list
+
+        # now lets see what configurations the timy has
+        for cfg in timy:
+            print(str(cfg.bConfigurationValue))
